@@ -47,38 +47,39 @@ export function HomePage() {
         <p>Share spare Beer to Gift codes with the Old Noarlunga footy tipping crew.</p>
         <div className="home-stats-banner" role="status" aria-live="polite">
           {countErr ? (
-            <p className="home-stats-line">
-              <span className="home-available-muted">{countErr}</span>
-            </p>
+            <p className="home-stats-feedback home-stats-feedback--muted">{countErr}</p>
           ) : availableCount === null || claimedCount === null ? (
-            <p className="home-stats-line">
-              <span className="home-available-muted">Checking the board…</span>
+            <p className="home-stats-feedback home-stats-feedback--muted">
+              <span className="home-stats-pulse" aria-hidden />
+              Checking the board…
             </p>
           ) : (
-            <>
-              <p className="home-stats-line">
+            <div className="home-stats-grid">
+              <div className="home-stat-card home-stat-card--live">
+                <span className="home-stat-eyebrow">Right now</span>
+                <p className="home-stat-value" aria-label={`${availableCount} beers available now`}>
+                  {availableCount}
+                </p>
+                <p className="home-stat-caption">{availableCount === 1 ? 'beer' : 'beers'} on the board</p>
                 {availableCount === 0 ? (
-                  <>
-                    <strong className="home-available-num">0</strong> beers available right now.{' '}
-                    <Link to="/gift" className="home-available-link">
-                      Gift one?
-                    </Link>
-                  </>
+                  <Link to="/gift" className="home-stat-cta">
+                    Gift one →
+                  </Link>
                 ) : (
-                  <>
-                    <strong className="home-available-num">{availableCount}</strong>{' '}
-                    {availableCount === 1 ? 'beer' : 'beers'} available ·{' '}
-                    <Link to="/grab" className="home-available-link">
-                      Grab one
-                    </Link>
-                  </>
+                  <Link to="/grab" className="home-stat-cta">
+                    Grab one →
+                  </Link>
                 )}
-              </p>
-              <p className="home-stats-line home-stats-line--secondary">
-                <strong className="home-available-num">{claimedCount}</strong>{' '}
-                {claimedCount === 1 ? 'beer' : 'beers'} claimed so far (all time).
-              </p>
-            </>
+              </div>
+              <div className="home-stat-card home-stat-card--total">
+                <span className="home-stat-eyebrow">All time</span>
+                <p className="home-stat-value" aria-label={`${claimedCount} beers claimed across the group`}>
+                  {claimedCount}
+                </p>
+                <p className="home-stat-caption">{claimedCount === 1 ? 'beer' : 'beers'} claimed</p>
+                <p className="home-stat-foot">Every code someone took from the list</p>
+              </div>
+            </div>
           )}
         </div>
         <div className="actions-stack">
