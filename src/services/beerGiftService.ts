@@ -193,6 +193,34 @@ async function countAvailableLocal(): Promise<number> {
   return n
 }
 
+function rpcCountToNumber(data: unknown): number {
+  if (typeof data === 'bigint') return Number(data)
+  if (typeof data === 'number' && Number.isFinite(data)) return Math.max(0, Math.floor(data))
+  if (typeof data === 'string' && data.length > 0) {
+    const n = Number.parseInt(data, 10)
+    return Number.isFinite(n) ? Math.max(0, n) : 0
+  }
+  return 0
+}
+
+async function countClaimedSupabase(): Promise<number> {
+  const sb = getSupabase()
+  const { data, error } = await sb.rpc('beer_gifts_claimed_count')
+  if (error) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not load claim tally. Try again in a moment.')
+  }
+  return rpcCountToNumber(data)
+}
+
+async function countClaimedLocal(): Promise<number> {
+  await Promise.resolve()
+  let n = 0
+  for (const r of loadAllLocal()) {
+    if (r.claimed) n += 1
+  }
+  return n
+}
+
 async function addSupabase(input: NewBeerGiftInput): Promise<BeerGift> {
   const expiresAt = validateNewInput(input)
   const code = normalizeCode(input.code)
@@ -348,6 +376,14 @@ export const beerGiftService = {
       return countAvailableSupabase()
     }
     return countAvailableLocal()
+  },
+
+  /** All-time count of beers that were claimed (`claimed = true`). */
+  async countClaimed(): Promise<number> {
+    if (isSupabaseConfigured()) {
+      return countClaimedSupabase()
+    }
+    return countClaimedLocal()
   },
 
   async add(input: NewBeerGiftInput): Promise<BeerGift> {

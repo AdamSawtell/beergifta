@@ -183,7 +183,7 @@ a {
   margin: 0 auto;
 }
 
-.hero-card .home-available-banner {
+.hero-card .home-stats-banner {
   margin: -0.15rem 0 1rem;
   padding: 0.65rem 0.85rem;
   border-radius: 11px;
@@ -192,6 +192,21 @@ a {
   font-size: 0.98rem;
   line-height: 1.4;
   color: rgba(245, 230, 200, 0.98);
+}
+
+.home-stats-line {
+  margin: 0;
+}
+
+.home-stats-line + .home-stats-line {
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(201, 162, 39, 0.15);
+}
+
+.home-stats-line--secondary {
+  font-size: 0.92rem;
+  color: rgba(245, 230, 200, 0.88);
 }
 
 .home-available-num {

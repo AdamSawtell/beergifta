@@ -10,15 +10,20 @@ const POLL_MS = 45_000
 export function HomePage() {
   const siteUrl = getShareSiteUrl()
   const [availableCount, setAvailableCount] = useState<number | null>(null)
+  const [claimedCount, setClaimedCount] = useState<number | null>(null)
   const [countErr, setCountErr] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     async function loadCount(isInitial: boolean) {
       try {
-        const n = await beerGiftService.countAvailable()
+        const [available, claimed] = await Promise.all([
+          beerGiftService.countAvailable(),
+          beerGiftService.countClaimed(),
+        ])
         if (cancelled) return
-        setAvailableCount(n)
+        setAvailableCount(available)
+        setClaimedCount(claimed)
         setCountErr(null)
       } catch {
         if (cancelled) return
@@ -40,28 +45,42 @@ export function HomePage() {
       <section className="hero-card">
         <h1>Beer Gifta</h1>
         <p>Share spare Beer to Gift codes with the Old Noarlunga footy tipping crew.</p>
-        <p className="home-available-banner" role="status" aria-live="polite">
+        <div className="home-stats-banner" role="status" aria-live="polite">
           {countErr ? (
-            <span className="home-available-muted">{countErr}</span>
-          ) : availableCount === null ? (
-            <span className="home-available-muted">Checking the board…</span>
-          ) : availableCount === 0 ? (
-            <>
-              <strong className="home-available-num">0</strong> beers available right now.{' '}
-              <Link to="/gift" className="home-available-link">
-                Gift one?
-              </Link>
-            </>
+            <p className="home-stats-line">
+              <span className="home-available-muted">{countErr}</span>
+            </p>
+          ) : availableCount === null || claimedCount === null ? (
+            <p className="home-stats-line">
+              <span className="home-available-muted">Checking the board…</span>
+            </p>
           ) : (
             <>
-              <strong className="home-available-num">{availableCount}</strong>{' '}
-              {availableCount === 1 ? 'beer' : 'beers'} available ·{' '}
-              <Link to="/grab" className="home-available-link">
-                Grab one
-              </Link>
+              <p className="home-stats-line">
+                {availableCount === 0 ? (
+                  <>
+                    <strong className="home-available-num">0</strong> beers available right now.{' '}
+                    <Link to="/gift" className="home-available-link">
+                      Gift one?
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <strong className="home-available-num">{availableCount}</strong>{' '}
+                    {availableCount === 1 ? 'beer' : 'beers'} available ·{' '}
+                    <Link to="/grab" className="home-available-link">
+                      Grab one
+                    </Link>
+                  </>
+                )}
+              </p>
+              <p className="home-stats-line home-stats-line--secondary">
+                <strong className="home-available-num">{claimedCount}</strong>{' '}
+                {claimedCount === 1 ? 'beer' : 'beers'} claimed so far (all time).
+              </p>
             </>
           )}
-        </p>
+        </div>
         <div className="actions-stack">
           <Link className="btn btn-primary btn-block" to="/gift">
             Gift a Beer
