@@ -1,3 +1,18 @@
+/** Days in a calendar month (1–12), local Gregorian rules (leap years included). */
+export function daysInMonth(year: number, month: number): number {
+  if (!Number.isInteger(month) || month < 1 || month > 12) {
+    return 31
+  }
+  return new Date(year, month, 0).getDate()
+}
+
+/** Local calendar parts → `YYYY-MM-DD` for storage and APIs. */
+export function ymdFromParts(year: number, month: number, day: number): string {
+  const max = daysInMonth(year, month)
+  const safeDay = Math.min(Math.max(1, Math.floor(day)), max)
+  return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`
+}
+
 /** End of local calendar day for a `YYYY-MM-DD` string (legacy rows). */
 export function endOfLocalDay(ymd: string): Date {
   const parts = ymd.split('-').map(Number)
