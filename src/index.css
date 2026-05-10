@@ -478,7 +478,10 @@ a {
   padding: 1.25rem;
   width: 100%;
   max-width: 22rem;
+  max-height: min(90dvh, 28rem);
+  overflow-y: auto;
   box-shadow: var(--shadow);
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal h2 {
