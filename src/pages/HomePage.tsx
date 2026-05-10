@@ -76,30 +76,52 @@ export function HomePage() {
           ) : (
             <>
               <div className="home-stats-grid">
-                <div className="home-stat-card home-stat-card--live">
-                  <span className="home-stat-eyebrow">Right now</span>
-                  <p className="home-stat-value" aria-label={`${availableCount} beers available now`}>
-                    {availableCount}
-                  </p>
-                  <p className="home-stat-caption">{availableCount === 1 ? 'beer' : 'beers'} on the board</p>
-                  {availableCount === 0 ? (
-                    <Link to="/gift" className="home-stat-cta">
-                      Gift one →
-                    </Link>
-                  ) : (
-                    <Link to="/grab" className="home-stat-cta">
-                      Grab one →
-                    </Link>
-                  )}
-                </div>
-                <div className="home-stat-card home-stat-card--total">
-                  <span className="home-stat-eyebrow">All time</span>
-                  <p className="home-stat-value" aria-label={`${claimedCount} beers claimed across the group`}>
-                    {claimedCount}
-                  </p>
-                  <p className="home-stat-caption">{claimedCount === 1 ? 'beer' : 'beers'} claimed</p>
-                  <p className="home-stat-foot">Every code someone took from the list</p>
-                </div>
+                <article
+                  className="home-stat-card home-stat-card--live"
+                  aria-label={`${availableCount} ${availableCount === 1 ? 'beer' : 'beers'} on the board right now`}
+                >
+                  <div className="home-stat-card-inner">
+                    <div className="home-stat-kpi">
+                      <span className="home-stat-value" aria-hidden="true">
+                        {availableCount}
+                      </span>
+                    </div>
+                    <div className="home-stat-body">
+                      <span className="home-stat-eyebrow">Right now</span>
+                      <p className="home-stat-caption">
+                        {availableCount === 1 ? 'beer' : 'beers'} on the board
+                      </p>
+                      {availableCount === 0 ? (
+                        <Link to="/gift" className="home-stat-cta home-stat-cta-pill">
+                          Gift one →
+                        </Link>
+                      ) : (
+                        <Link to="/grab" className="home-stat-cta home-stat-cta-pill">
+                          Grab one →
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </article>
+                <article
+                  className="home-stat-card home-stat-card--total"
+                  aria-label={`${claimedCount} ${claimedCount === 1 ? 'beer' : 'beers'} claimed all time`}
+                >
+                  <div className="home-stat-card-inner">
+                    <div className="home-stat-kpi">
+                      <span className="home-stat-value" aria-hidden="true">
+                        {claimedCount}
+                      </span>
+                    </div>
+                    <div className="home-stat-body">
+                      <span className="home-stat-eyebrow">All time</span>
+                      <p className="home-stat-caption">{claimedCount === 1 ? 'beer' : 'beers'} claimed</p>
+                      <p className="home-stat-foot">
+                        Codes taken from this list—your group’s running tally.
+                      </p>
+                    </div>
+                  </div>
+                </article>
               </div>
               {topGifters.length > 0 ? (
                 <div className="home-leaderboard" aria-labelledby="home-leaderboard-heading">
@@ -110,8 +132,8 @@ export function HomePage() {
                     {topGifters.map((row, idx) => (
                       <li key={`${row.giftedBy}-${idx}`} className="home-leaderboard-row">
                         <span className="home-leaderboard-name">{row.giftedBy}</span>
-                        <span className="home-leaderboard-meta">
-                          {row.giftCount} {row.giftCount === 1 ? 'code' : 'codes'} gifted
+                        <span className="home-leaderboard-badge">
+                          {row.giftCount} {row.giftCount === 1 ? 'gift' : 'gifts'}
                         </span>
                       </li>
                     ))}
