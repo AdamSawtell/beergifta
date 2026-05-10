@@ -47,11 +47,17 @@ After you add a Supabase client, replace the bodies of `listAvailable`, `add`, a
 
 ## AWS Amplify Hosting
 
-1. Create a new Amplify app from **GitHub** and select this repository.
-2. Set the Amplify **app root** (monorepo / subfolder) to **`beer-gifter`** so it picks up `beer-gifter/amplify.yml`.
-3. Use the default build from `amplify.yml`: `npm ci`, then `npm run build`, publish **`dist/`**.
+This folder is a **standalone Git repo** (`git init` at this level). Point Amplify at the **repository root** (not a monorepo subfolder), so **`amplify.yml`** sits at the repo root.
+
+1. Create an empty **GitHub** repository (for example `beer-gifta`), then from this folder run:
+   ```bash
+   git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
+   git push -u origin main
+   ```
+2. In **AWS Amplify** → **Host web app** → connect that GitHub repo and branch **`main`**.
+3. Confirm the build uses **`amplify.yml`**: **`npm ci`**, **`npm run build`**, publish **`dist/`** (defaults match this file).
 4. Add the same `VITE_*` variables in Amplify when you enable Supabase.
-5. **SPA routing:** this app uses client routes (`/gift`, `/grab`). In Amplify, add a **rewrite** so unknown paths serve **`/index.html`** with HTTP **200** (not 302). Exact UI wording varies by console version; the goal is: refresh on `/gift` still loads the app. See `dev-core/guides/aws-and-hosting.md`.
+5. **SPA routing:** this app uses client routes (`/gift`, `/grab`). In Amplify **Rewrites and redirects**, add a rule so unknown paths serve **`/index.html`** with HTTP **200** (rewrite). Exact UI wording varies by console version; the goal is: refresh on `/gift` still loads the app. See `dev-core/guides/aws-and-hosting.md`.
 
 Site access control (password on the Amplify app) stays outside this repo, as you described.
 
