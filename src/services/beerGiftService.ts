@@ -1,10 +1,10 @@
 import type { BeerGift, NewBeerGiftInput } from '../types/beerGift'
+import { getSupabase, isSupabaseConfigured } from '../lib/supabase'
 import { endOfLocalDay, expiresAtHasPassed, localDateAndTimeToExpiresAtIso } from '../utils/dates'
 
 /**
- * Browser persistence key for the local MVP store.
- * When you wire Supabase, replace reads/writes with a table (for example `beer_gifts`)
- * and keep the same method names on the exported service so UI code stays unchanged.
+ * When Supabase env vars are missing, the app falls back to localStorage (per-browser data only).
+ * Production builds should set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY on the host.
  */
 const STORAGE_KEY = 'beer-gifter:gifts:v1'
 
@@ -13,6 +13,7 @@ export type BeerGiftServiceErrorCode =
   | 'EXPIRED'
   | 'DUPLICATE_CODE'
   | 'NOT_FOUND'
+  | 'BACKEND'
 
 export class BeerGiftServiceError extends Error {
   readonly code: BeerGiftServiceErrorCode
@@ -21,6 +22,69 @@ export class BeerGiftServiceError extends Error {
     super(message)
     this.name = 'BeerGiftServiceError'
     this.code = code
+  }
+}
+
+function normalizeCode(raw: string): string {
+  return raw.trim().toUpperCase()
+}
+
+function validateNewInput(input: NewBeerGiftInput): string {
+  const name = input.giftedBy.trim()
+  if (!name) {
+    throw new BeerGiftServiceError('VALIDATION', 'Add your name so people know who shared the code.')
+  }
+  const code = normalizeCode(input.code)
+  if (code.length !== 4) {
+    throw new BeerGiftServiceError('VALIDATION', 'The code must be exactly 4 characters.')
+  }
+  const date = input.expiryDate?.trim() ?? ''
+  if (!date) {
+    throw new BeerGiftServiceError('VALIDATION', 'Choose the expiry date from Fanzo.')
+  }
+  const timeRaw = input.expiryTime?.trim() ?? ''
+  if (!timeRaw) {
+    throw new BeerGiftServiceError('VALIDATION', 'Choose the expiry time from Fanzo (same day as the date).')
+  }
+
+  let expiresAt: string
+  try {
+    expiresAt = localDateAndTimeToExpiresAtIso(date, timeRaw)
+  } catch {
+    throw new BeerGiftServiceError('VALIDATION', 'Check the date and time look correct.')
+  }
+
+  if (expiresAtHasPassed(expiresAt)) {
+    throw new BeerGiftServiceError(
+      'EXPIRED',
+      'That date and time are already in the past. Pick when the code actually stops working.',
+    )
+  }
+
+  return expiresAt
+}
+
+type BeerGiftDbRow = {
+  id: string
+  code: string
+  gifted_by: string
+  expires_at: string
+  note: string | null
+  claimed: boolean
+  claimed_at: string | null
+  created_at: string
+}
+
+function mapDbRow(row: BeerGiftDbRow): BeerGift {
+  return {
+    id: row.id,
+    code: row.code,
+    giftedBy: row.gifted_by,
+    expiresAt: row.expires_at,
+    note: row.note,
+    claimed: row.claimed,
+    claimedAt: row.claimed_at,
+    createdAt: row.created_at,
   }
 }
 
@@ -64,7 +128,7 @@ function normalizeStoredRow(value: unknown): BeerGift | null {
   }
 }
 
-function loadAll(): BeerGift[] {
+function loadAllLocal(): BeerGift[] {
   if (typeof window === 'undefined') return []
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
@@ -77,125 +141,177 @@ function loadAll(): BeerGift[] {
   }
 }
 
-function saveAll(rows: BeerGift[]): void {
+function saveAllLocal(rows: BeerGift[]): void {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rows))
 }
 
-function normalizeCode(raw: string): string {
-  return raw.trim().toUpperCase()
+async function listAvailableSupabase(): Promise<BeerGift[]> {
+  const sb = getSupabase()
+  const { data, error } = await sb
+    .from('beer_gifts')
+    .select('*')
+    .order('expires_at', { ascending: true })
+    .order('created_at', { ascending: true })
+  if (error) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not load beers. Try again in a moment.')
+  }
+  return (data as BeerGiftDbRow[]).map(mapDbRow)
 }
 
-function validateNewInput(input: NewBeerGiftInput): string {
-  const name = input.giftedBy.trim()
-  if (!name) {
-    throw new BeerGiftServiceError('VALIDATION', 'Add your name so people know who shared the code.')
-  }
+async function listAvailableLocal(): Promise<BeerGift[]> {
+  await Promise.resolve()
+  const rows = loadAllLocal()
+  return rows
+    .filter((r) => !r.claimed && !expiresAtHasPassed(r.expiresAt))
+    .sort((a, b) => {
+      const byTime = a.expiresAt.localeCompare(b.expiresAt)
+      if (byTime !== 0) return byTime
+      return a.createdAt.localeCompare(b.createdAt)
+    })
+}
+
+async function addSupabase(input: NewBeerGiftInput): Promise<BeerGift> {
+  const expiresAt = validateNewInput(input)
   const code = normalizeCode(input.code)
-  if (code.length !== 4) {
-    throw new BeerGiftServiceError('VALIDATION', 'The code must be exactly 4 characters.')
-  }
-  const date = input.expiryDate?.trim() ?? ''
-  if (!date) {
-    throw new BeerGiftServiceError('VALIDATION', 'Choose the expiry date from Fanzo.')
-  }
-  const timeRaw = input.expiryTime?.trim() ?? ''
-  if (!timeRaw) {
-    throw new BeerGiftServiceError('VALIDATION', 'Choose the expiry time from Fanzo (same day as the date).')
-  }
+  const sb = getSupabase()
 
-  let expiresAt: string
-  try {
-    expiresAt = localDateAndTimeToExpiresAtIso(date, timeRaw)
-  } catch {
-    throw new BeerGiftServiceError('VALIDATION', 'Check the date and time look correct.')
+  const { data: dup, error: dupErr } = await sb
+    .from('beer_gifts')
+    .select('id')
+    .eq('code', code)
+    .eq('claimed', false)
+    .gt('expires_at', new Date().toISOString())
+    .limit(1)
+  if (dupErr) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not check for duplicates. Try again.')
   }
-
-  if (expiresAtHasPassed(expiresAt)) {
+  if ((dup?.length ?? 0) > 0) {
     throw new BeerGiftServiceError(
-      'EXPIRED',
-      'That date and time are already in the past. Pick when the code actually stops working.',
+      'DUPLICATE_CODE',
+      'That code is already listed as available. Wait until it is claimed or remove the old listing first.',
     )
   }
 
-  return expiresAt
+  const { data, error } = await sb
+    .from('beer_gifts')
+    .insert({
+      code,
+      gifted_by: input.giftedBy.trim(),
+      expires_at: expiresAt,
+      note: input.note?.trim() ? input.note.trim() : null,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    if (error.code === '23505') {
+      throw new BeerGiftServiceError('DUPLICATE_CODE', 'That code is already on the board.')
+    }
+    throw new BeerGiftServiceError('BACKEND', 'Could not save the beer. Try again.')
+  }
+  return mapDbRow(data as BeerGiftDbRow)
+}
+
+async function addLocal(input: NewBeerGiftInput): Promise<BeerGift> {
+  await Promise.resolve()
+  const expiresAt = validateNewInput(input)
+  const code = normalizeCode(input.code)
+  const rows = loadAllLocal()
+  const duplicate = rows.some(
+    (r) => !r.claimed && r.code === code && !expiresAtHasPassed(r.expiresAt),
+  )
+  if (duplicate) {
+    throw new BeerGiftServiceError(
+      'DUPLICATE_CODE',
+      'That code is already listed as available. Wait until it is claimed or remove the old listing first.',
+    )
+  }
+  const now = new Date().toISOString()
+  const row: BeerGift = {
+    id: crypto.randomUUID(),
+    code,
+    giftedBy: input.giftedBy.trim(),
+    expiresAt,
+    note: input.note?.trim() ? input.note.trim() : null,
+    claimed: false,
+    claimedAt: null,
+    createdAt: now,
+  }
+  rows.push(row)
+  saveAllLocal(rows)
+  return row
+}
+
+async function claimSupabase(id: string): Promise<BeerGift> {
+  const sb = getSupabase()
+  const claimedAt = new Date().toISOString()
+  const { data, error } = await sb
+    .from('beer_gifts')
+    .update({ claimed: true, claimed_at: claimedAt })
+    .eq('id', id)
+    .eq('claimed', false)
+    .select()
+    .maybeSingle()
+
+  if (error) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not claim that beer. Try again.')
+  }
+  if (!data) {
+    throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
+  }
+  return mapDbRow(data as BeerGiftDbRow)
+}
+
+async function claimLocal(id: string): Promise<BeerGift> {
+  await Promise.resolve()
+  const rows = loadAllLocal()
+  const idx = rows.findIndex((r) => r.id === id)
+  if (idx === -1) {
+    throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
+  }
+  const current = rows[idx]
+  if (current === undefined) {
+    throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
+  }
+  if (current.claimed) {
+    throw new BeerGiftServiceError('NOT_FOUND', 'Someone already claimed this one.')
+  }
+  if (expiresAtHasPassed(current.expiresAt)) {
+    throw new BeerGiftServiceError('EXPIRED', 'That code has expired.')
+  }
+  const updated: BeerGift = {
+    ...current,
+    claimed: true,
+    claimedAt: new Date().toISOString(),
+  }
+  rows[idx] = updated
+  saveAllLocal(rows)
+  return updated
 }
 
 /**
- * Local-first implementation of the beer gift store.
- *
- * Supabase swap (see `dev-core/guides/supabase-patterns.md`):
- * - Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in Amplify environment variables.
- * - Create a `beer_gifts` table with columns matching `BeerGift` (or an RPC that returns the same shape).
- * - Replace `loadAll` / `saveAll` with `createClient` queries; for public claim flows, prefer narrow RPCs
- *   or RLS policies so anonymous users can insert gifts and update `claimed` without exposing unrelated rows.
+ * Shared data when `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set (see README).
+ * Otherwise localStorage only (same device); fine for local UI checks, not for a group board.
  */
 export const beerGiftService = {
   async listAvailable(): Promise<BeerGift[]> {
-    await Promise.resolve()
-    const rows = loadAll()
-    return rows
-      .filter((r) => !r.claimed && !expiresAtHasPassed(r.expiresAt))
-      .sort((a, b) => {
-        const byTime = a.expiresAt.localeCompare(b.expiresAt)
-        if (byTime !== 0) return byTime
-        return a.createdAt.localeCompare(b.createdAt)
-      })
+    if (isSupabaseConfigured()) {
+      return listAvailableSupabase()
+    }
+    return listAvailableLocal()
   },
 
   async add(input: NewBeerGiftInput): Promise<BeerGift> {
-    await Promise.resolve()
-    const expiresAt = validateNewInput(input)
-    const code = normalizeCode(input.code)
-    const rows = loadAll()
-    const duplicate = rows.some(
-      (r) => !r.claimed && r.code === code && !expiresAtHasPassed(r.expiresAt),
-    )
-    if (duplicate) {
-      throw new BeerGiftServiceError(
-        'DUPLICATE_CODE',
-        'That code is already listed as available. Wait until it is claimed or remove the old listing first.',
-      )
+    if (isSupabaseConfigured()) {
+      return addSupabase(input)
     }
-    const now = new Date().toISOString()
-    const row: BeerGift = {
-      id: crypto.randomUUID(),
-      code,
-      giftedBy: input.giftedBy.trim(),
-      expiresAt,
-      note: input.note?.trim() ? input.note.trim() : null,
-      claimed: false,
-      claimedAt: null,
-      createdAt: now,
-    }
-    rows.push(row)
-    saveAll(rows)
-    return row
+    return addLocal(input)
   },
 
   async claim(id: string): Promise<BeerGift> {
-    await Promise.resolve()
-    const rows = loadAll()
-    const idx = rows.findIndex((r) => r.id === id)
-    if (idx === -1) {
-      throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
+    if (isSupabaseConfigured()) {
+      return claimSupabase(id)
     }
-    const current = rows[idx]
-    if (current === undefined) {
-      throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
-    }
-    if (current.claimed) {
-      throw new BeerGiftServiceError('NOT_FOUND', 'Someone already claimed this one.')
-    }
-    if (expiresAtHasPassed(current.expiresAt)) {
-      throw new BeerGiftServiceError('EXPIRED', 'That code has expired.')
-    }
-    const updated: BeerGift = {
-      ...current,
-      claimed: true,
-      claimedAt: new Date().toISOString(),
-    }
-    rows[idx] = updated
-    saveAll(rows)
-    return updated
+    return claimLocal(id)
   },
 }

@@ -2,12 +2,32 @@
 
 Small web app for the **Old Noarlunga Hotel** AFL footy tipping group: list spare Fanzo **Beer to Gift** codes, sort by soonest expiry, and claim them in one tap.
 
+## Shared board (Supabase)
+
+For **one list every device can see**, the app uses **Supabase** (Postgres + Row Level Security). Production builds **require** `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. If they are missing after deploy, the app shows a short configuration screen instead of the UI.
+
+**One-time database setup**
+
+1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
+2. Open **SQL Editor** → **New query**, paste the full contents of **`supabase/migrations/20260110120000_beer_gifts.sql`**, then **Run**. You should see table **`public.beer_gifts`** under **Table Editor**.
+3. Open **Project Settings → API** and copy **Project URL** and the **`anon` `public`** key (never put the **service_role** key in the browser or in Amplify for this app).
+
+**Amplify**
+
+4. In your Amplify app: **Environment variables** → add **`VITE_SUPABASE_URL`** and **`VITE_SUPABASE_ANON_KEY`** with those values → save → **Redeploy** the app (Vite bakes env in at build time).
+
+**Local dev without Supabase**
+
+If the two `VITE_*` variables are not set, the app falls back to **localStorage** (data only on that browser). That is fine for layout checks; it is **not** a shared board.
+
+Copy **`.env.example`** to **`.env.local`** and fill real values for shared testing on your machine.
+
 ## What you get today
 
 - **Gift a Beer:** name, 4-character code, **expiry date and time** (both required, from Fanzo), optional note. Codes are stored in **uppercase**. Past expiry date-times cannot be added.
 - **Grab a Beer:** only rows whose expiry is **still in the future**; sorted by **soonest expiry first**. The list refreshes on a timer so items disappear after expiry without a manual reload. Cards highlight beers expiring within **7 days**.
-- **Claim:** marks the row as claimed (still stored locally, but hidden from the list). After claim, a dialog shows the code with **copy** support.
-- **Data layer:** `src/services/beerGiftService.ts` uses **localStorage** for a password-protected static site. The same module is the place to swap in **Supabase** later without rewriting the UI.
+- **Claim:** marks the row as claimed in the database (hidden from the available list). After claim, a dialog shows the code with **copy** support.
+- **Data layer:** `src/services/beerGiftService.ts` talks to **Supabase** when env vars exist; otherwise **localStorage** for solo dev. See `dev-core/guides/supabase-patterns.md` in your workspace for wider conventions.
 
 ## Requirements
 
@@ -32,18 +52,14 @@ Open the URL Vite prints (usually `http://localhost:5173`).
 | `npm run preview` | Serve the `dist/` folder locally |
 | `npm run lint` | ESLint on `src/`                 |
 
-## Environment variables (Supabase, optional)
+## Environment variables
 
-The app runs with **no env vars** while it uses localStorage.
+| Variable                  | Production | Local dev |
+|---------------------------|------------|-----------|
+| `VITE_SUPABASE_URL`       | Required   | Optional in `.env.local` |
+| `VITE_SUPABASE_ANON_KEY`  | Required   | Optional in `.env.local` |
 
-When you connect Supabase (see `dev-core/guides/supabase-patterns.md`), add these in **Amplify → Environment variables** (and in a local `.env` for development):
-
-| Variable                 | Required when using Supabase | Notes |
-|--------------------------|------------------------------|--------|
-| `VITE_SUPABASE_URL`      | Yes                          | Project URL from Supabase settings |
-| `VITE_SUPABASE_ANON_KEY` | Yes                          | anon public key (never use the service role key in the browser) |
-
-After you add a Supabase client, replace the bodies of `listAvailable`, `add`, and `claim` in `beerGiftService.ts` with queries or RPC calls; keep the exported method names so pages stay stable.
+Never expose the **service_role** key in the front end or in Amplify env vars for this app.
 
 ## AWS Amplify Hosting
 
@@ -56,7 +72,7 @@ This folder is a **standalone Git repo** (`git init` at this level). Point Ampli
    ```
 2. In **AWS Amplify** → **Host web app** → connect that GitHub repo and branch **`main`**.
 3. Confirm the build uses **`amplify.yml`**: **`npm ci`**, **`npm run build`**, publish **`dist/`** (defaults match this file).
-4. Add the same `VITE_*` variables in Amplify when you enable Supabase.
+4. Add **`VITE_SUPABASE_URL`** and **`VITE_SUPABASE_ANON_KEY`**, then **redeploy** so the client bundle includes them.
 5. **SPA routing:** this app uses client routes (`/gift`, `/grab`). In Amplify **Rewrites and redirects**, add a rule so unknown paths serve **`/index.html`** with HTTP **200** (rewrite). Exact UI wording varies by console version; the goal is: refresh on `/gift` still loads the app. See `dev-core/guides/aws-and-hosting.md`.
 
 Site access control (password on the Amplify app) stays outside this repo, as you described.
@@ -75,7 +91,9 @@ See `dev-core/guides/testing-framework.md` in the parent workspace for the wider
 
 ## Project layout
 
-- `src/services/beerGiftService.ts` — data API (localStorage now; Supabase later).
+- `supabase/migrations/` — SQL to create `beer_gifts` and RLS (run in Supabase SQL editor).
+- `src/lib/supabase.ts` — browser Supabase client.
+- `src/services/beerGiftService.ts` — `listAvailable`, `add`, `claim`.
 - `src/pages/` — Home, Gift form, Grab list + claim dialog.
 - `src/components/Layout.tsx` — shared shell, footer, responsible-use note.
 - `amplify.yml` — Amplify build for this folder.
