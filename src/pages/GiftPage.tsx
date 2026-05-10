@@ -3,12 +3,16 @@ import { Link } from 'react-router-dom'
 import { CodeCharBoxesEdit } from '../components/CodeCharBoxes'
 import { Layout } from '../components/Layout'
 import { BeerGiftServiceError, beerGiftService } from '../services/beerGiftService'
+import { hour12MeridiemTo24HourClock, type Meridiem } from '../utils/dates'
+
+const HOURS_12 = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const
 
 export function GiftPage() {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
   const [expiryDate, setExpiryDate] = useState('')
-  const [expiryTime, setExpiryTime] = useState('')
+  const [expiryHour12, setExpiryHour12] = useState<number>(6)
+  const [expiryMeridiem, setExpiryMeridiem] = useState<Meridiem>('PM')
   const [note, setNote] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -20,6 +24,7 @@ export function GiftPage() {
     setSuccess(false)
     setSubmitting(true)
     try {
+      const expiryTime = hour12MeridiemTo24HourClock(expiryHour12, expiryMeridiem)
       await beerGiftService.add({
         giftedBy: name,
         code,
@@ -30,7 +35,8 @@ export function GiftPage() {
       setSuccess(true)
       setCode('')
       setExpiryDate('')
-      setExpiryTime('')
+      setExpiryHour12(6)
+      setExpiryMeridiem('PM')
       setNote('')
     } catch (err) {
       if (err instanceof BeerGiftServiceError) {
@@ -83,7 +89,8 @@ export function GiftPage() {
           <fieldset className="form-field form-fieldset-expiry">
             <legend>When does this code stop working?</legend>
             <p className="form-hint" style={{ marginTop: 0, marginBottom: '0.65rem' }}>
-              Use the same <strong>date</strong> and <strong>time</strong> Fanzo shows. Both are required.
+              Use the same <strong>date</strong> and <strong>hour</strong> as Fanzo. Time is <strong>on the hour only</strong> (no minutes).{' '}
+              <strong>PM</strong> is selected by default so it is quick to match evening cutoffs.
             </p>
             <div className="form-row-datetime">
               <div>
@@ -97,17 +104,45 @@ export function GiftPage() {
                   required
                 />
               </div>
-              <div>
-                <label htmlFor="gift-expiry-time">Expiry time</label>
-                <input
-                  id="gift-expiry-time"
-                  name="expiryTime"
-                  type="time"
-                  step={60}
-                  value={expiryTime}
-                  onChange={(e) => setExpiryTime(e.target.value)}
-                  required
-                />
+              <div className="form-expiry-hour-col">
+                <span className="form-expiry-hour-label" id="gift-expiry-time-label">
+                  Expiry time (hour)
+                </span>
+                <div className="form-time-pair" role="group" aria-labelledby="gift-expiry-time-label">
+                  <div>
+                    <label htmlFor="gift-hour" className="form-sublabel">
+                      Hour
+                    </label>
+                    <select
+                      id="gift-hour"
+                      name="expiryHour"
+                      value={expiryHour12}
+                      onChange={(e) => setExpiryHour12(Number(e.target.value))}
+                      disabled={submitting}
+                    >
+                      {HOURS_12.map((h) => (
+                        <option key={h} value={h}>
+                          {h}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label htmlFor="gift-meridiem" className="form-sublabel">
+                      AM / PM
+                    </label>
+                    <select
+                      id="gift-meridiem"
+                      name="expiryMeridiem"
+                      value={expiryMeridiem}
+                      onChange={(e) => setExpiryMeridiem(e.target.value as Meridiem)}
+                      disabled={submitting}
+                    >
+                      <option value="PM">PM</option>
+                      <option value="AM">AM</option>
+                    </select>
+                  </div>
+                </div>
               </div>
             </div>
           </fieldset>

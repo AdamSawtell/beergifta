@@ -44,7 +44,7 @@ function validateNewInput(input: NewBeerGiftInput): string {
   }
   const timeRaw = input.expiryTime?.trim() ?? ''
   if (!timeRaw) {
-    throw new BeerGiftServiceError('VALIDATION', 'Choose the expiry time from Fanzo (same day as the date).')
+    throw new BeerGiftServiceError('VALIDATION', 'Choose the expiry hour on the gift form.')
   }
 
   let expiresAt: string

@@ -27,7 +27,7 @@ Copy **`.env.example`** to **`.env.local`** and fill real values for shared test
 
 ## What you get today
 
-- **Gift a Beer:** name, 4-character code, **expiry date and time** (both required, from Fanzo), optional note. Codes are stored in **uppercase**. Past expiry date-times cannot be added.
+- **Gift a Beer:** name, 4-character code, **expiry date** and **hour on the clock** (12-hour pickers, **PM** by default; no minutes), optional note. Codes are stored in **uppercase**. Past expiry date-times cannot be added.
 - **Grab a Beer:** only rows whose expiry is **still in the future**; sorted by **soonest expiry first**. The list refreshes on a timer so items disappear after expiry without a manual reload. Cards show **Expiring soon** only when expiry is within the **next 24 hours**.
 - **Claim:** marks the row as claimed in the database (hidden from the available list). After claim, a dialog shows the code with **copy** support.
 - **Data layer:** `src/services/beerGiftService.ts` talks to **Supabase** when env vars exist; otherwise **localStorage** for solo dev. See `dev-core/guides/supabase-patterns.md` in your workspace for wider conventions.

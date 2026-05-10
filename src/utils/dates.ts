@@ -47,6 +47,18 @@ export function formatExpiresAtForDisplay(iso: string): string {
   })
 }
 
+export type Meridiem = 'AM' | 'PM'
+
+/** 12-hour clock (1–12) + AM/PM → `HH:00:00` for `localDateAndTimeToExpiresAtIso`. */
+export function hour12MeridiemTo24HourClock(hour12: number, meridiem: Meridiem): string {
+  if (!Number.isInteger(hour12) || hour12 < 1 || hour12 > 12) {
+    throw new RangeError('Hour must be a whole number from 1 to 12')
+  }
+  const h24 =
+    meridiem === 'AM' ? (hour12 === 12 ? 0 : hour12) : hour12 === 12 ? 12 : hour12 + 12
+  return `${String(h24).padStart(2, '0')}:00:00`
+}
+
 /** Build UTC ISO from local date (`YYYY-MM-DD`) and time (`HH:mm` or `HH:mm:ss`). */
 export function localDateAndTimeToExpiresAtIso(dateYmd: string, timeRaw: string): string {
   const time = timeRaw.trim()

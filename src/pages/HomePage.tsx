@@ -16,7 +16,7 @@ export function HomePage() {
           </Link>
         </div>
         <p className="note-small">
-          Codes are 4 characters from Fanzo. Add date and time for expiry; soonest expiry shows first when you grab.
+          Codes are 4 characters from Fanzo. Add date and hour for expiry (on the hour, PM by default); soonest expiry shows first when you grab.
         </p>
       </section>
     </Layout>

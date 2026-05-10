@@ -302,6 +302,44 @@ a {
   }
 }
 
+.form-expiry-hour-col {
+  min-width: 0;
+}
+
+.form-expiry-hour-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+  color: var(--color-text);
+}
+
+.form-time-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  align-items: end;
+}
+
+.form-sublabel {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.form-time-pair select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #c4b59f;
+  padding: 0.65rem 0.5rem;
+  font-size: 1.05rem;
+  font-family: inherit;
+  background: #fffef8;
+  color: var(--color-text);
+}
+
 .code-char-boxes {
   display: flex;
   flex-direction: row;
