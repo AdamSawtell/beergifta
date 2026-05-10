@@ -29,19 +29,21 @@ export function HomePage() {
           Share the site with other legends
         </h2>
         <p className="share-qr-lead">Scan the code so mates can open Beer Gifta on their phone.</p>
-        <a className="share-qr-link" href={siteUrl}>
-          {siteUrl}
-        </a>
-        <div className="share-qr-frame">
-          <QRCodeSVG
-            value={siteUrl}
-            size={176}
-            level="M"
-            includeMargin
-            title="Open Beer Gifta"
-            bgColor="#fffef8"
-            fgColor="#3a060f"
-          />
+        <div className="share-qr-stack">
+          <div className="share-qr-frame">
+            <QRCodeSVG
+              value={siteUrl}
+              size={176}
+              level="M"
+              includeMargin
+              title="Open Beer Gifta"
+              bgColor="#fffef8"
+              fgColor="#3a060f"
+            />
+          </div>
+          <a className="share-qr-link" href={siteUrl}>
+            {siteUrl}
+          </a>
         </div>
       </section>
     </Layout>

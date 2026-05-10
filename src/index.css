@@ -122,6 +122,9 @@ a {
   text-align: center;
   border: 1px solid rgba(201, 162, 39, 0.25);
   box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .share-qr-heading {
@@ -129,22 +132,36 @@ a {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-surface);
+  width: 100%;
 }
 
 .share-qr-lead {
-  margin: 0 0 0.65rem;
+  margin: 0 0 1rem;
   font-size: 0.92rem;
   color: rgba(245, 230, 200, 0.92);
   line-height: 1.35;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.share-qr-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
 }
 
 .share-qr-link {
-  display: inline-block;
-  margin-bottom: 1rem;
+  display: block;
+  margin: 0;
+  max-width: 100%;
   font-size: 0.88rem;
   font-weight: 600;
   color: #f0d576;
   word-break: break-all;
+  text-align: center;
+  line-height: 1.35;
 }
 
 .share-qr-link:hover {
@@ -152,10 +169,18 @@ a {
 }
 
 .share-qr-frame {
-  display: inline-flex;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   padding: 0.65rem;
   background: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
+  line-height: 0;
+}
+
+.share-qr-frame svg {
+  display: block;
+  margin: 0 auto;
 }
 
 .hero-card h1 {
