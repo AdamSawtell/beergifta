@@ -341,9 +341,9 @@ a {
 
 .form-row-datetime {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  align-items: end;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-items: stretch;
 }
 
 .form-row-datetime label {
@@ -365,9 +365,11 @@ a {
   color: var(--color-text);
 }
 
-@media (max-width: 380px) {
+@media (min-width: 540px) {
   .form-row-datetime {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    align-items: end;
   }
 }
 
