@@ -85,6 +85,12 @@ export function formatLocalYmdForDisplay(ymd: string): string {
   })
 }
 
+/** Short clock time for “list updated” labels. */
+export function formatUpdatedClock(d: Date): string {
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
+}
+
 /** Local “now” for UI (e.g. claim confirmation). */
 export function formatLocalNowForDisplay(d: Date = new Date()): string {
   if (Number.isNaN(d.getTime())) return ''

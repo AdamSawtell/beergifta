@@ -21,6 +21,10 @@ export function Layout({ showBack, children }: LayoutProps) {
       </header>
       <main className="app-main">{children}</main>
       <footer className="footer">
+        <p className="footer-disclaimer note-small">
+          Beer to Gift codes are issued by third-party apps such as <strong>Fanzo</strong>. Beer Gifta is independent and not
+          affiliated with Fanzo. Use codes only as their terms allow.
+        </p>
         <p className="note-small" style={{ margin: '0 0 0.5rem' }}>
           Please enjoy responsibly. For adults 18+ only.
         </p>

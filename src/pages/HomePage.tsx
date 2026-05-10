@@ -1,44 +1,59 @@
 import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
-import { beerGiftService } from '../services/beerGiftService'
+import { beerGiftService, type BoardStats, type TopGifter } from '../services/beerGiftService'
 import { getShareSiteUrl } from '../utils/siteUrl'
 
 const POLL_MS = 45_000
 
 export function HomePage() {
   const siteUrl = getShareSiteUrl()
-  const [availableCount, setAvailableCount] = useState<number | null>(null)
-  const [claimedCount, setClaimedCount] = useState<number | null>(null)
+  const [stats, setStats] = useState<BoardStats | null>(null)
+  const [topGifters, setTopGifters] = useState<TopGifter[]>([])
   const [countErr, setCountErr] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    async function loadCount(isInitial: boolean) {
+  const loadBoard = useCallback(async (isInitial: boolean) => {
+    try {
+      const s = await beerGiftService.boardStats()
+      let leaders: TopGifter[] = []
       try {
-        const [available, claimed] = await Promise.all([
-          beerGiftService.countAvailable(),
-          beerGiftService.countClaimed(),
-        ])
-        if (cancelled) return
-        setAvailableCount(available)
-        setClaimedCount(claimed)
-        setCountErr(null)
+        leaders = await beerGiftService.topGiftersThisMonth(5)
       } catch {
-        if (cancelled) return
-        if (isInitial) {
-          setCountErr('Could not load how many beers are on the board.')
-        }
+        leaders = []
       }
-    }
-    void loadCount(true)
-    const id = window.setInterval(() => void loadCount(false), POLL_MS)
-    return () => {
-      cancelled = true
-      window.clearInterval(id)
+      setStats(s)
+      setTopGifters(leaders)
+      setCountErr(null)
+    } catch {
+      if (!isInitial) return
+      setCountErr('Could not load how many beers are on the board.')
+      setStats(null)
+      setTopGifters([])
     }
   }, [])
+
+  useEffect(() => {
+    const raf = window.requestAnimationFrame(() => {
+      void loadBoard(true)
+    })
+    const id = window.setInterval(() => {
+      void loadBoard(false)
+    }, POLL_MS)
+    return () => {
+      window.cancelAnimationFrame(raf)
+      window.clearInterval(id)
+    }
+  }, [loadBoard])
+
+  function retryStats() {
+    setCountErr(null)
+    setStats(null)
+    void loadBoard(true)
+  }
+
+  const availableCount = stats?.available
+  const claimedCount = stats?.claimed
 
   return (
     <Layout>
@@ -47,39 +62,63 @@ export function HomePage() {
         <p>Share spare Beer to Gift codes with the Old Noarlunga footy tipping crew.</p>
         <div className="home-stats-banner" role="status" aria-live="polite">
           {countErr ? (
-            <p className="home-stats-feedback home-stats-feedback--muted">{countErr}</p>
-          ) : availableCount === null || claimedCount === null ? (
+            <div className="home-stats-error-panel">
+              <p className="home-stats-error-msg">{countErr}</p>
+              <button type="button" className="btn btn-primary btn-block" onClick={retryStats}>
+                Try again
+              </button>
+            </div>
+          ) : availableCount === undefined || claimedCount === undefined ? (
             <p className="home-stats-feedback home-stats-feedback--muted">
               <span className="home-stats-pulse" aria-hidden />
               Checking the board…
             </p>
           ) : (
-            <div className="home-stats-grid">
-              <div className="home-stat-card home-stat-card--live">
-                <span className="home-stat-eyebrow">Right now</span>
-                <p className="home-stat-value" aria-label={`${availableCount} beers available now`}>
-                  {availableCount}
-                </p>
-                <p className="home-stat-caption">{availableCount === 1 ? 'beer' : 'beers'} on the board</p>
-                {availableCount === 0 ? (
-                  <Link to="/gift" className="home-stat-cta">
-                    Gift one →
-                  </Link>
-                ) : (
-                  <Link to="/grab" className="home-stat-cta">
-                    Grab one →
-                  </Link>
-                )}
+            <>
+              <div className="home-stats-grid">
+                <div className="home-stat-card home-stat-card--live">
+                  <span className="home-stat-eyebrow">Right now</span>
+                  <p className="home-stat-value" aria-label={`${availableCount} beers available now`}>
+                    {availableCount}
+                  </p>
+                  <p className="home-stat-caption">{availableCount === 1 ? 'beer' : 'beers'} on the board</p>
+                  {availableCount === 0 ? (
+                    <Link to="/gift" className="home-stat-cta">
+                      Gift one →
+                    </Link>
+                  ) : (
+                    <Link to="/grab" className="home-stat-cta">
+                      Grab one →
+                    </Link>
+                  )}
+                </div>
+                <div className="home-stat-card home-stat-card--total">
+                  <span className="home-stat-eyebrow">All time</span>
+                  <p className="home-stat-value" aria-label={`${claimedCount} beers claimed across the group`}>
+                    {claimedCount}
+                  </p>
+                  <p className="home-stat-caption">{claimedCount === 1 ? 'beer' : 'beers'} claimed</p>
+                  <p className="home-stat-foot">Every code someone took from the list</p>
+                </div>
               </div>
-              <div className="home-stat-card home-stat-card--total">
-                <span className="home-stat-eyebrow">All time</span>
-                <p className="home-stat-value" aria-label={`${claimedCount} beers claimed across the group`}>
-                  {claimedCount}
-                </p>
-                <p className="home-stat-caption">{claimedCount === 1 ? 'beer' : 'beers'} claimed</p>
-                <p className="home-stat-foot">Every code someone took from the list</p>
-              </div>
-            </div>
+              {topGifters.length > 0 ? (
+                <div className="home-leaderboard" aria-labelledby="home-leaderboard-heading">
+                  <p id="home-leaderboard-heading" className="home-leaderboard-title">
+                    Top gifters · this month
+                  </p>
+                  <ol className="home-leaderboard-list">
+                    {topGifters.map((row, idx) => (
+                      <li key={`${row.giftedBy}-${idx}`} className="home-leaderboard-row">
+                        <span className="home-leaderboard-name">{row.giftedBy}</span>
+                        <span className="home-leaderboard-meta">
+                          {row.giftCount} {row.giftCount === 1 ? 'code' : 'codes'} gifted
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ) : null}
+            </>
           )}
         </div>
         <div className="actions-stack">

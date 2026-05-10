@@ -8,6 +8,32 @@ import { endOfLocalDay, expiresAtHasPassed, localDateAndTimeToExpiresAtIso } fro
  */
 const STORAGE_KEY = 'beer-gifter:gifts:v1'
 
+/** Client-side mirror of server claim velocity (localStorage mode only). */
+const localClaimHits: number[] = []
+const LOCAL_CLAIM_WINDOW_MS = 60_000
+const LOCAL_CLAIM_MAX_PER_WINDOW = 40
+
+export type BoardStats = { available: number; claimed: number }
+export type TopGifter = { giftedBy: string; giftCount: number }
+
+function recordLocalClaimVelocity(): void {
+  const now = Date.now()
+  while (localClaimHits.length > 0 && now - (localClaimHits[0] as number) > LOCAL_CLAIM_WINDOW_MS) {
+    localClaimHits.shift()
+  }
+  if (localClaimHits.length >= LOCAL_CLAIM_MAX_PER_WINDOW) {
+    throw new BeerGiftServiceError(
+      'BACKEND',
+      'Too many claims from this device right now. Wait a minute and try again.',
+    )
+  }
+  localClaimHits.push(now)
+}
+
+function startOfLocalMonthTs(d: Date): number {
+  return new Date(d.getFullYear(), d.getMonth(), 1).setHours(0, 0, 0, 0)
+}
+
 export type BeerGiftServiceErrorCode =
   | 'VALIDATION'
   | 'EXPIRED'
@@ -174,25 +200,6 @@ async function listAvailableLocal(): Promise<BeerGift[]> {
     })
 }
 
-/** Rows the shared board would list (anon RLS mirrors this for Supabase). */
-async function countAvailableSupabase(): Promise<number> {
-  const sb = getSupabase()
-  const { count, error } = await sb.from('beer_gifts').select('*', { count: 'exact', head: true })
-  if (error) {
-    throw new BeerGiftServiceError('BACKEND', 'Could not load availability. Try again in a moment.')
-  }
-  return count ?? 0
-}
-
-async function countAvailableLocal(): Promise<number> {
-  await Promise.resolve()
-  let n = 0
-  for (const r of loadAllLocal()) {
-    if (!r.claimed && !expiresAtHasPassed(r.expiresAt)) n += 1
-  }
-  return n
-}
-
 function rpcCountToNumber(data: unknown): number {
   if (typeof data === 'bigint') return Number(data)
   if (typeof data === 'number' && Number.isFinite(data)) return Math.max(0, Math.floor(data))
@@ -203,22 +210,64 @@ function rpcCountToNumber(data: unknown): number {
   return 0
 }
 
-async function countClaimedSupabase(): Promise<number> {
-  const sb = getSupabase()
-  const { data, error } = await sb.rpc('beer_gifts_claimed_count')
-  if (error) {
-    throw new BeerGiftServiceError('BACKEND', 'Could not load claim tally. Try again in a moment.')
+function parseBoardStatsJson(raw: unknown): BoardStats {
+  if (!raw || typeof raw !== 'object') {
+    throw new BeerGiftServiceError('BACKEND', 'Could not load board stats. Try again.')
   }
-  return rpcCountToNumber(data)
+  const o = raw as Record<string, unknown>
+  return {
+    available: rpcCountToNumber(o.available),
+    claimed: rpcCountToNumber(o.claimed),
+  }
 }
 
-async function countClaimedLocal(): Promise<number> {
-  await Promise.resolve()
-  let n = 0
-  for (const r of loadAllLocal()) {
-    if (r.claimed) n += 1
+async function boardStatsSupabase(): Promise<BoardStats> {
+  const sb = getSupabase()
+  const { data, error } = await sb.rpc('beer_gift_board_stats')
+  if (error) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not load board stats. Try again in a moment.')
   }
-  return n
+  return parseBoardStatsJson(data)
+}
+
+async function boardStatsLocal(): Promise<BoardStats> {
+  await Promise.resolve()
+  let available = 0
+  let claimed = 0
+  for (const r of loadAllLocal()) {
+    if (r.claimed) claimed += 1
+    else if (!expiresAtHasPassed(r.expiresAt)) available += 1
+  }
+  return { available, claimed }
+}
+
+type TopGifterRowDb = { gifted_by: string; gift_count: number }
+
+async function topGiftersThisMonthSupabase(limit: number): Promise<TopGifter[]> {
+  const sb = getSupabase()
+  const { data, error } = await sb.rpc('beer_gift_top_gifters_month', { p_limit: limit })
+  if (error) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not load leaderboard. Try again.')
+  }
+  if (!Array.isArray(data)) return []
+  return data.map((row) => {
+    const r = row as TopGifterRowDb
+    return { giftedBy: r.gifted_by, giftCount: rpcCountToNumber(r.gift_count) }
+  })
+}
+
+async function topGiftersThisMonthLocal(limit: number): Promise<TopGifter[]> {
+  await Promise.resolve()
+  const start = startOfLocalMonthTs(new Date())
+  const counts = new Map<string, number>()
+  for (const r of loadAllLocal()) {
+    if (new Date(r.createdAt).getTime() < start) continue
+    const k = r.giftedBy.trim()
+    if (!k) continue
+    counts.set(k, (counts.get(k) ?? 0) + 1)
+  }
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+  return sorted.slice(0, limit).map(([giftedBy, giftCount]) => ({ giftedBy, giftCount }))
 }
 
 async function addSupabase(input: NewBeerGiftInput): Promise<BeerGift> {
@@ -313,9 +362,16 @@ async function claimSupabase(id: string, claimedBy: string): Promise<BeerGift> {
   const { data, error } = await sb.rpc('claim_beer_gift', { p_id: id, p_claimed_by: claimer })
 
   if (error) {
-    const raw = (error.message ?? '').toLowerCase()
+    const msg = error.message ?? ''
+    const raw = msg.toLowerCase()
     if (raw.includes('add your name')) {
       throw new BeerGiftServiceError('VALIDATION', 'Add your name so the group knows who took the beer.')
+    }
+    if (raw.includes('too many claims')) {
+      throw new BeerGiftServiceError(
+        'BACKEND',
+        'Too many claims right now. Wait a minute and try again.',
+      )
     }
     throw new BeerGiftServiceError('BACKEND', 'Could not claim that beer. Try again.')
   }
@@ -332,6 +388,7 @@ async function claimSupabase(id: string, claimedBy: string): Promise<BeerGift> {
 async function claimLocal(id: string, claimedBy: string): Promise<BeerGift> {
   await Promise.resolve()
   const claimer = normalizeClaimedBy(claimedBy)
+  recordLocalClaimVelocity()
   const rows = loadAllLocal()
   const idx = rows.findIndex((r) => r.id === id)
   if (idx === -1) {
@@ -370,20 +427,33 @@ export const beerGiftService = {
     return listAvailableLocal()
   },
 
+  /** Single round-trip board tallies (preferred over separate count calls). */
+  async boardStats(): Promise<BoardStats> {
+    if (isSupabaseConfigured()) {
+      return boardStatsSupabase()
+    }
+    return boardStatsLocal()
+  },
+
   /** Number of beers currently listed as available (unclaimed and not expired). */
   async countAvailable(): Promise<number> {
-    if (isSupabaseConfigured()) {
-      return countAvailableSupabase()
-    }
-    return countAvailableLocal()
+    const s = await (isSupabaseConfigured() ? boardStatsSupabase() : boardStatsLocal())
+    return s.available
   },
 
   /** All-time count of beers that were claimed (`claimed = true`). */
   async countClaimed(): Promise<number> {
+    const s = await (isSupabaseConfigured() ? boardStatsSupabase() : boardStatsLocal())
+    return s.claimed
+  },
+
+  /** Most active gifters this calendar month (local month in dev storage mode). */
+  async topGiftersThisMonth(limit = 5): Promise<TopGifter[]> {
+    const cap = Math.min(20, Math.max(1, Math.floor(limit)))
     if (isSupabaseConfigured()) {
-      return countClaimedSupabase()
+      return topGiftersThisMonthSupabase(cap)
     }
-    return countClaimedLocal()
+    return topGiftersThisMonthLocal(cap)
   },
 
   async add(input: NewBeerGiftInput): Promise<BeerGift> {

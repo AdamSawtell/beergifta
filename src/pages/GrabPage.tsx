@@ -4,8 +4,15 @@ import { CodeCharBoxesReadonly } from '../components/CodeCharBoxes'
 import { Layout } from '../components/Layout'
 import type { BeerGift } from '../types/beerGift'
 import { BeerGiftServiceError, beerGiftService } from '../services/beerGiftService'
-import { formatExpiresAtForDisplay, formatLocalNowForDisplay, hoursUntilExpiresAt } from '../utils/dates'
+import {
+  formatExpiresAtForDisplay,
+  formatLocalNowForDisplay,
+  formatUpdatedClock,
+  hoursUntilExpiresAt,
+} from '../utils/dates'
+import { attachPullToRefresh } from '../utils/pullToRefreshHint'
 import { copyToClipboard } from '../utils/copyToClipboard'
+import { getStoredClaimerName, setStoredClaimerName } from '../utils/claimerNameStorage'
 
 /** Show "Expiring soon" only when the code stops within this many hours. */
 const SOON_HOURS = 24
@@ -23,7 +30,7 @@ function ClaimConfirmModal({
   onCancel: () => void
   onConfirm: (claimedBy: string) => void | Promise<void>
 }) {
-  const [name, setName] = useState('')
+  const [name, setName] = useState(getStoredClaimerName)
   const [nowLabel, setNowLabel] = useState(() => formatLocalNowForDisplay())
 
   useEffect(() => {
@@ -138,6 +145,9 @@ function ClaimModal({
           </p>
         ) : null}
         <p>Use it in Fanzo before {formatExpiresAtForDisplay(gift.expiresAt)}.</p>
+        <p className="modal-claim-reassure">
+          Nobody else sees this listing anymore—it is off the shared board straight away.
+        </p>
         <div className="code-display">
           <CodeCharBoxesReadonly code={gift.code} size="lg" />
         </div>
@@ -163,6 +173,7 @@ export function GrabPage() {
   const [items, setItems] = useState<BeerGift[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [lastListUpdated, setLastListUpdated] = useState<Date | null>(null)
   const [claimingId, setClaimingId] = useState<string | null>(null)
   const [pendingClaim, setPendingClaim] = useState<BeerGift | null>(null)
   const [claimed, setClaimed] = useState<BeerGift | null>(null)
@@ -177,6 +188,7 @@ export function GrabPage() {
     try {
       const rows = await beerGiftService.listAvailable()
       setItems(rows)
+      setLastListUpdated(new Date())
       if (!silent) setLoadError(null)
     } catch {
       if (!silent) setLoadError('Could not load the list. Check your connection and try again.')
@@ -186,37 +198,22 @@ export function GrabPage() {
   }, [])
 
   useEffect(() => {
-    let cancelled = false
-    void (async () => {
-      setLoadError(null)
-      setLoading(true)
-      try {
-        const rows = await beerGiftService.listAvailable()
-        if (!cancelled) setItems(rows)
-      } catch {
-        if (!cancelled) setLoadError('Could not load the list. Check your connection and try again.')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [])
+    const id = window.requestAnimationFrame(() => {
+      void fetchList()
+    })
+    return () => window.cancelAnimationFrame(id)
+  }, [fetchList])
 
   useEffect(() => {
     const id = window.setInterval(() => {
-      void (async () => {
-        try {
-          const rows = await beerGiftService.listAvailable()
-          setItems(rows)
-        } catch {
-          /* ignore: silent poll */
-        }
-      })()
+      void fetchList({ silent: true })
     }, 45_000)
     return () => window.clearInterval(id)
-  }, [])
+  }, [fetchList])
+
+  useEffect(() => {
+    return attachPullToRefresh(() => void fetchList({ silent: true }))
+  }, [fetchList])
 
   function cancelPendingClaim() {
     if (claimingId !== null) return
@@ -230,6 +227,7 @@ export function GrabPage() {
     setClaimingId(pendingClaim.id)
     try {
       const row = await beerGiftService.claim(pendingClaim.id, claimedBy)
+      setStoredClaimerName(claimedBy)
       setPendingClaim(null)
       setClaimed(row)
       await fetchList({ silent: true })
@@ -260,17 +258,27 @@ export function GrabPage() {
       ) : null}
       {loading ? <div className="loading-line">Loading...</div> : null}
       {!loading && loadError ? (
-        <div className="surface-panel">
-          <p>{loadError}</p>
+        <section className="grab-panel-error" aria-live="polite">
+          <h3 className="grab-panel-error-title">List did not load</h3>
+          <p className="grab-panel-error-text">{loadError}</p>
           <button type="button" className="btn btn-primary btn-block" onClick={() => void fetchList()}>
-            Retry
+            Try again
           </button>
-        </div>
+        </section>
       ) : null}
       {!loading && !loadError && items.length === 0 ? (
-        <section className="surface-panel empty-state">
-          No beers available right now. Check back soon or gift one if you have a spare.
-          <div style={{ marginTop: '1rem' }}>
+        <section className="surface-panel empty-board" aria-labelledby="empty-board-title">
+          <p className="empty-board-badge" aria-hidden>
+            All caught up
+          </p>
+          <h3 id="empty-board-title" className="empty-board-title">
+            No beers on the board right now
+          </h3>
+          <p className="empty-board-text">
+            When someone gifts a spare Fanzo code, it lands here sorted by expiry. Pull down from the top of the screen
+            to refresh—or wait a minute and we will retry for you.
+          </p>
+          <div style={{ marginTop: '1.1rem' }}>
             <Link to="/gift" className="btn btn-primary btn-block">
               Gift a Beer
             </Link>
@@ -278,7 +286,26 @@ export function GrabPage() {
         </section>
       ) : null}
       {!loading && !loadError && items.length > 0 ? (
-        <div className="beer-list">
+        <>
+          <div className="grab-list-toolbar">
+            <p className="grab-list-meta" role="status">
+              {lastListUpdated ? (
+                <>
+                  Updated <strong>{formatUpdatedClock(lastListUpdated)}</strong>
+                </>
+              ) : (
+                <>Loading times…</>
+              )}
+              <span className="grab-list-meta-hint" aria-hidden>
+                {' '}
+                · pull down from top or tap refresh to reload
+              </span>
+            </p>
+            <button type="button" className="btn btn-ghost-refresh" onClick={() => void fetchList({ silent: true })}>
+              Refresh list
+            </button>
+          </div>
+          <div className="beer-list">
           {items.map((g) => {
             const hoursLeft = hoursUntilExpiresAt(g.expiresAt)
             const soon = hoursLeft > 0 && hoursLeft <= SOON_HOURS
@@ -309,6 +336,7 @@ export function GrabPage() {
             )
           })}
         </div>
+        </>
       ) : null}
       {pendingClaim ? (
         <ClaimConfirmModal

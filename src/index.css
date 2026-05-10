@@ -366,6 +366,70 @@ a {
   border-radius: 4px;
 }
 
+.home-stats-error-panel {
+  padding: 1rem 1rem 1.05rem;
+  border-radius: 16px;
+  background: linear-gradient(155deg, rgba(139, 21, 56, 0.35) 0%, rgba(0, 0, 0, 0.25) 100%);
+  border: 1px solid rgba(255, 160, 175, 0.25);
+}
+
+.home-stats-error-msg {
+  margin: 0 0 0.85rem;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  color: rgba(255, 230, 236, 0.95);
+}
+
+.home-leaderboard {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.85rem 0.85rem;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.home-leaderboard-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(245, 230, 200, 0.55);
+}
+
+.home-leaderboard-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.home-leaderboard-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: rgba(245, 230, 200, 0.92);
+}
+
+.home-leaderboard-name {
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-leaderboard-meta {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(240, 213, 118, 0.92);
+}
+
 .hero-card h1 {
   margin: 0 0 0.35rem;
   font-size: 1.75rem;
@@ -428,6 +492,32 @@ a {
   width: 100%;
 }
 
+.btn-ghost-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.42rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: rgba(245, 230, 200, 0.95);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(245, 230, 200, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-ghost-refresh:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.btn-ghost-refresh:focus-visible {
+  outline: 2px solid rgba(253, 233, 169, 0.55);
+  outline-offset: 2px;
+}
+
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -453,6 +543,15 @@ a {
 .footer strong {
   color: rgba(245, 230, 200, 0.9);
   font-weight: 600;
+}
+
+.footer-disclaimer {
+  margin: 0 0 0.85rem !important;
+  max-width: 26rem;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  line-height: 1.42;
+  color: rgba(245, 230, 200, 0.55) !important;
 }
 
 .surface-panel {
@@ -821,6 +920,89 @@ a {
   border: 1px solid #b7dfb9;
 }
 
+.grab-list-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+  padding: 0.45rem 0 0;
+  flex-wrap: wrap;
+}
+
+.grab-list-meta {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: rgba(245, 230, 200, 0.85);
+}
+
+.grab-list-meta strong {
+  color: #fde9a9;
+}
+
+.grab-list-meta-hint {
+  color: rgba(245, 230, 200, 0.55);
+  font-weight: 500;
+}
+
+.grab-panel-error {
+  padding: 1.2rem 1.15rem;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    155deg,
+    rgba(253, 224, 230, 0.98) 0%,
+    rgba(255, 245, 248, 1) 100%
+  );
+  border: 1px solid rgba(139, 21, 56, 0.25);
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.grab-panel-error-title {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+  color: var(--color-danger);
+}
+
+.grab-panel-error-text {
+  margin: 0 0 1rem;
+  font-size: 0.93rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.surface-panel.empty-board {
+  padding: 1.35rem 1.25rem 1.5rem;
+}
+
+.empty-board-badge {
+  display: inline-block;
+  margin: 0 0 0.65rem;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  background: rgba(201, 162, 39, 0.2);
+  color: var(--color-text-muted);
+}
+
+.empty-board-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.22rem;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.empty-board-text {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
 .beer-list {
   display: flex;
   flex-direction: column;
@@ -951,6 +1133,17 @@ a {
 .modal-claim-meta {
   color: var(--color-text);
   font-size: 0.95rem;
+}
+
+.modal-claim-reassure {
+  margin: -0.25rem 0 0.95rem;
+  font-size: 0.83rem;
+  line-height: 1.42;
+  color: var(--color-text-muted);
+  padding: 0.5rem 0.55rem;
+  border-radius: 8px;
+  background: rgba(201, 162, 39, 0.1);
+  border-left: 3px solid var(--color-accent-dark);
 }
 
 .modal-form-field label {
