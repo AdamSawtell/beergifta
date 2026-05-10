@@ -59,7 +59,7 @@ function ClaimModal({
             </p>
           ) : null}
           <button type="button" className="btn btn-secondary btn-block" onClick={onClose}>
-            Close
+            Cheers
           </button>
         </div>
       </div>
