@@ -93,10 +93,11 @@ export function GiftPage() {
               <strong>PM</strong> is selected by default so it is quick to match evening cutoffs.
             </p>
             <div className="form-row-datetime">
-              <div>
+              <div className="form-expiry-date-col">
                 <label htmlFor="gift-expiry-date">Expiry date</label>
                 <input
                   id="gift-expiry-date"
+                  className="form-input-date"
                   name="expiryDate"
                   type="date"
                   value={expiryDate}

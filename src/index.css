@@ -346,6 +346,11 @@ a {
   align-items: stretch;
 }
 
+.form-row-datetime > div {
+  min-width: 0;
+  width: 100%;
+}
+
 .form-row-datetime label {
   display: block;
   font-weight: 600;
@@ -365,6 +370,26 @@ a {
   color: var(--color-text);
 }
 
+/* Native date control: avoid grid overflow and odd scaling on small phones (esp. iOS Safari). */
+.form-input-date,
+.form-row-datetime input[type='date'] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-size: 16px;
+  line-height: 1.35;
+  min-height: 2.85rem;
+  padding: 0.7rem 0.75rem;
+}
+
+.form-input-date::-webkit-calendar-picker-indicator {
+  opacity: 1;
+  padding: 0.2rem;
+  cursor: pointer;
+}
+
 @media (min-width: 540px) {
   .form-row-datetime {
     grid-template-columns: 1fr 1fr;
@@ -373,8 +398,10 @@ a {
   }
 }
 
+.form-expiry-date-col,
 .form-expiry-hour-col {
   min-width: 0;
+  width: 100%;
 }
 
 .form-expiry-hour-label {
