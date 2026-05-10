@@ -174,6 +174,25 @@ async function listAvailableLocal(): Promise<BeerGift[]> {
     })
 }
 
+/** Rows the shared board would list (anon RLS mirrors this for Supabase). */
+async function countAvailableSupabase(): Promise<number> {
+  const sb = getSupabase()
+  const { count, error } = await sb.from('beer_gifts').select('*', { count: 'exact', head: true })
+  if (error) {
+    throw new BeerGiftServiceError('BACKEND', 'Could not load availability. Try again in a moment.')
+  }
+  return count ?? 0
+}
+
+async function countAvailableLocal(): Promise<number> {
+  await Promise.resolve()
+  let n = 0
+  for (const r of loadAllLocal()) {
+    if (!r.claimed && !expiresAtHasPassed(r.expiresAt)) n += 1
+  }
+  return n
+}
+
 async function addSupabase(input: NewBeerGiftInput): Promise<BeerGift> {
   const expiresAt = validateNewInput(input)
   const code = normalizeCode(input.code)
@@ -321,6 +340,14 @@ export const beerGiftService = {
       return listAvailableSupabase()
     }
     return listAvailableLocal()
+  },
+
+  /** Number of beers currently listed as available (unclaimed and not expired). */
+  async countAvailable(): Promise<number> {
+    if (isSupabaseConfigured()) {
+      return countAvailableSupabase()
+    }
+    return countAvailableLocal()
   },
 
   async add(input: NewBeerGiftInput): Promise<BeerGift> {

@@ -183,6 +183,36 @@ a {
   margin: 0 auto;
 }
 
+.hero-card .home-available-banner {
+  margin: -0.15rem 0 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 11px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(201, 162, 39, 0.3);
+  font-size: 0.98rem;
+  line-height: 1.4;
+  color: rgba(245, 230, 200, 0.98);
+}
+
+.home-available-num {
+  color: #f5e190;
+  font-weight: 800;
+}
+
+.home-available-link {
+  color: #f0d576;
+  font-weight: 700;
+}
+
+.home-available-link:hover {
+  text-decoration: underline;
+}
+
+.home-available-muted {
+  color: rgba(245, 230, 200, 0.78);
+  font-style: italic;
+}
+
 .hero-card h1 {
   margin: 0 0 0.35rem;
   font-size: 1.75rem;

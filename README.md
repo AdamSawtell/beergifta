@@ -10,8 +10,9 @@ For **one list every device can see**, the app uses **Supabase** (Postgres + Row
 
 1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
 2. Open **SQL Editor** → **New query**, paste and run each migration in order:
-   - **`supabase/migrations/20260110120000_beer_gifts.sql`** (table and RLS)
-   - **`supabase/migrations/20260110140000_claim_beer_gift_rpc.sql`** (claim RPC; needed so **Claim beer** works with RLS)  
+   - **`supabase/migrations/20260110120000_beer_gifts.sql`** (table and RLS; includes **`gifted_by`** for who shared the code)
+   - **`supabase/migrations/20260110140000_claim_beer_gift_rpc.sql`** (claim RPC; needed so **Claim beer** works with RLS)
+   - **`supabase/migrations/20260510180000_claimed_by.sql`** (**`claimed_by`** and two-argument **`claim_beer_gift`** for who grabbed the beer)  
    You should see table **`public.beer_gifts`** under **Table Editor**. If the RPC does not show in the API tab, use **Settings → API → Reload schema** (wording may vary).
 3. Open **Project Settings → API** and copy **Project URL** and the **`anon` `public`** key (never put the **service_role** key in the browser or in Amplify for this app).
 
