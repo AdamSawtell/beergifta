@@ -6,6 +6,12 @@ export function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
 }
 
+/** Today in the user’s local calendar as `YYYY-MM-DD`. */
+export function localYmdToday(): string {
+  const n = new Date()
+  return ymdFromParts(n.getFullYear(), n.getMonth() + 1, n.getDate())
+}
+
 /** Local calendar parts → `YYYY-MM-DD` for storage and APIs. */
 export function ymdFromParts(year: number, month: number, day: number): string {
   const max = daysInMonth(year, month)
@@ -59,6 +65,23 @@ export function formatExpiresAtForDisplay(iso: string): string {
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
+  })
+}
+
+/** Label for a calendar day `YYYY-MM-DD` in local time (no clock). */
+export function formatLocalYmdForDisplay(ymd: string): string {
+  const parts = ymd.split('-').map(Number)
+  const y = parts[0]
+  const m = parts[1]
+  const d = parts[2]
+  if (y === undefined || m === undefined || d === undefined) return ymd
+  const dt = new Date(y, m - 1, d)
+  if (Number.isNaN(dt.getTime())) return ymd
+  return dt.toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   })
 }
 
