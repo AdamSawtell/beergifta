@@ -1,0 +1,33 @@
+import { Link } from 'react-router-dom'
+
+type LayoutProps = {
+  showBack?: boolean
+  children: React.ReactNode
+}
+
+export function Layout({ showBack, children }: LayoutProps) {
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <Link to="/" className="brand-link">
+          <h1 className="brand-title">Beer Gifta</h1>
+          <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
+        </Link>
+        {showBack ? (
+          <Link to="/" className="nav-back">
+            ← Home
+          </Link>
+        ) : null}
+      </header>
+      <main className="app-main">{children}</main>
+      <footer className="footer">
+        <p className="note-small" style={{ margin: '0 0 0.5rem' }}>
+          Please enjoy responsibly. For adults 18+ only.
+        </p>
+        <p style={{ margin: 0 }}>
+          Developed by <strong>SAWTELL</strong>
+        </p>
+      </footer>
+    </div>
+  )
+}
