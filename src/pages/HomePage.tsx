@@ -60,6 +60,14 @@ export function HomePage() {
       <section className="hero-card">
         <h1>Beer Gifta</h1>
         <p>Share spare Beer to Gift codes with the Old Noarlunga footy tipping crew.</p>
+        <div className="actions-stack">
+          <Link className="btn btn-primary btn-block" to="/gift">
+            Gift a Beer
+          </Link>
+          <Link className="btn btn-secondary btn-block" to="/grab">
+            Grab a Beer
+          </Link>
+        </div>
         <div className="home-stats-banner" role="status" aria-live="polite">
           {countErr ? (
             <div className="home-stats-error-panel">
@@ -142,14 +150,6 @@ export function HomePage() {
               ) : null}
             </>
           )}
-        </div>
-        <div className="actions-stack">
-          <Link className="btn btn-primary btn-block" to="/gift">
-            Gift a Beer
-          </Link>
-          <Link className="btn btn-secondary btn-block" to="/grab">
-            Grab a Beer
-          </Link>
         </div>
         <p className="note-small">
           Codes are 4 characters from Fanzo. Add date and hour for expiry (on the hour, PM by default); soonest expiry shows first when you grab.
