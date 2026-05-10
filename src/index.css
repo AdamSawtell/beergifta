@@ -246,15 +246,9 @@ a {
 
 .home-stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 0.65rem;
   min-width: 0;
-}
-
-@media (max-width: 359px) {
-  .home-stats-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .home-stat-card {
