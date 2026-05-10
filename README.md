@@ -9,7 +9,7 @@ For **one list every device can see**, the app uses **Supabase** (Postgres + Row
 **One-time database setup**
 
 1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
-2. Open **SQL Editor** → **New query**, paste and run each migration in order:
+2. Open **SQL Editor** → **New query**, paste and run each migration in order (copy the **`.sql` file contents only**—do not paste the markdown bullet `-` from this README, or Postgres will error near `-`):
    - **`supabase/migrations/20260110120000_beer_gifts.sql`** (table and RLS; includes **`gifted_by`** for who shared the code)
    - **`supabase/migrations/20260110140000_claim_beer_gift_rpc.sql`** (claim RPC; needed so **Claim beer** works with RLS)
    - **`supabase/migrations/20260510180000_claimed_by.sql`** (**`claimed_by`** and two-argument **`claim_beer_gift`** for who grabbed the beer)

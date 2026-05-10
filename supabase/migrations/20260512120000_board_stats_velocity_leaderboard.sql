@@ -1,4 +1,8 @@
--- Combined board stats RPC, soft global claim rate limit, top gifters (calendar month UTC).
+/*
+  Beer Gifta: board stats RPC, claim rate limit, top gifters (UTC calendar month).
+  Paste this whole file into Supabase SQL Editor. Comments must use -- or /* */ only;
+  a single leading "-" (from markdown lists) will cause a syntax error.
+*/
 
 create table if not exists public.beer_claim_velocity (
   id bigserial primary key,
