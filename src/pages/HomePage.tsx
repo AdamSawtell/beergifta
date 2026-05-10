@@ -1,7 +1,11 @@
+import { QRCodeSVG } from 'qrcode.react'
 import { Link } from 'react-router-dom'
 import { Layout } from '../components/Layout'
+import { getShareSiteUrl } from '../utils/siteUrl'
 
 export function HomePage() {
+  const siteUrl = getShareSiteUrl()
+
   return (
     <Layout>
       <section className="hero-card">
@@ -18,6 +22,27 @@ export function HomePage() {
         <p className="note-small">
           Codes are 4 characters from Fanzo. Add date and hour for expiry (on the hour, PM by default); soonest expiry shows first when you grab.
         </p>
+      </section>
+
+      <section className="share-qr-card" aria-labelledby="share-qr-heading">
+        <h2 id="share-qr-heading" className="share-qr-heading">
+          Share the site with other legends
+        </h2>
+        <p className="share-qr-lead">Scan the code so mates can open Beer Gifta on their phone.</p>
+        <a className="share-qr-link" href={siteUrl}>
+          {siteUrl}
+        </a>
+        <div className="share-qr-frame">
+          <QRCodeSVG
+            value={siteUrl}
+            size={176}
+            level="M"
+            includeMargin
+            title="Open Beer Gifta"
+            bgColor="#fffef8"
+            fgColor="#3a060f"
+          />
+        </div>
       </section>
     </Layout>
   )

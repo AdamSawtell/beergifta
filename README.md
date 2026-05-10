@@ -61,6 +61,7 @@ Open the URL Vite prints (usually `http://localhost:5173`).
 |---------------------------|------------|-----------|
 | `VITE_SUPABASE_URL`       | Required   | Optional in `.env.local` |
 | `VITE_SUPABASE_ANON_KEY`  | Required   | Optional in `.env.local` |
+| `VITE_SITE_URL`           | Optional   | Optional; full URL for the home-page QR (defaults to `https://beergifta.com`) |
 
 Never expose the **service_role** key in the front end or in Amplify env vars for this app.
 
