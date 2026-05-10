@@ -62,6 +62,19 @@ export function formatExpiresAtForDisplay(iso: string): string {
   })
 }
 
+/** Local “now” for UI (e.g. claim confirmation). */
+export function formatLocalNowForDisplay(d: Date = new Date()): string {
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export type Meridiem = 'AM' | 'PM'
 
 /** 12-hour clock (1–12) + AM/PM → `HH:00:00` for `localDateAndTimeToExpiresAtIso`. */

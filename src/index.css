@@ -642,6 +642,44 @@ a {
   gap: 0.5rem;
 }
 
+.modal-claim-now {
+  font-size: 0.92rem;
+  color: var(--color-text);
+  background: rgba(201, 162, 39, 0.14);
+  padding: 0.55rem 0.65rem;
+  border-radius: 8px;
+  margin-bottom: 0.85rem;
+}
+
+.modal-claim-meta {
+  color: var(--color-text);
+  font-size: 0.95rem;
+}
+
+.modal-form-field label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+  color: var(--color-text);
+}
+
+.modal-form-field input {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid #c4b59f;
+  padding: 0.65rem 0.75rem;
+  font-size: 16px;
+  font-family: inherit;
+  background: #fffef8;
+  color: var(--color-text);
+}
+
+.modal-claim-confirm {
+  max-height: min(92dvh, 32rem);
+}
+
 .page-title {
   margin: 0 0 0.75rem;
   font-size: 1.35rem;

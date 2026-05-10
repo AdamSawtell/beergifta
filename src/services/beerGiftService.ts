@@ -72,6 +72,7 @@ type BeerGiftDbRow = {
   note: string | null
   claimed: boolean
   claimed_at: string | null
+  claimed_by?: string | null
   created_at: string
 }
 
@@ -84,6 +85,7 @@ function mapDbRow(row: BeerGiftDbRow): BeerGift {
     note: row.note,
     claimed: row.claimed,
     claimedAt: row.claimed_at,
+    claimedBy: row.claimed_by ?? null,
     createdAt: row.created_at,
   }
 }
@@ -99,7 +101,8 @@ function normalizeStoredRow(value: unknown): BeerGift | null {
     typeof o.claimed !== 'boolean' ||
     typeof o.createdAt !== 'string' ||
     (o.note !== null && typeof o.note !== 'string') ||
-    (o.claimedAt !== null && typeof o.claimedAt !== 'string')
+    (o.claimedAt !== null && typeof o.claimedAt !== 'string') ||
+    (o.claimedBy !== undefined && o.claimedBy !== null && typeof o.claimedBy !== 'string')
   ) {
     return null
   }
@@ -124,6 +127,7 @@ function normalizeStoredRow(value: unknown): BeerGift | null {
     claimed: o.claimed,
     claimedAt:
       o.claimedAt === null || typeof o.claimedAt === 'string' ? (o.claimedAt as string | null) : null,
+    claimedBy: typeof o.claimedBy === 'string' ? o.claimedBy : null,
     createdAt: o.createdAt,
   }
 }
@@ -235,6 +239,7 @@ async function addLocal(input: NewBeerGiftInput): Promise<BeerGift> {
     note: input.note?.trim() ? input.note.trim() : null,
     claimed: false,
     claimedAt: null,
+    claimedBy: null,
     createdAt: now,
   }
   rows.push(row)
@@ -242,13 +247,29 @@ async function addLocal(input: NewBeerGiftInput): Promise<BeerGift> {
   return row
 }
 
-async function claimSupabase(id: string): Promise<BeerGift> {
+function normalizeClaimedBy(raw: string): string {
+  const t = raw.trim()
+  if (!t) {
+    throw new BeerGiftServiceError('VALIDATION', 'Add your name so the group knows who took the beer.')
+  }
+  if (t.length > 80) {
+    throw new BeerGiftServiceError('VALIDATION', 'Use a shorter name (80 characters max).')
+  }
+  return t
+}
+
+async function claimSupabase(id: string, claimedBy: string): Promise<BeerGift> {
   const sb = getSupabase()
+  const claimer = normalizeClaimedBy(claimedBy)
   // Use RPC so the claimed row can be returned; RLS blocks SELECT on claimed rows,
   // so UPDATE ... select() fails in PostgREST (see supabase/migrations/20260110140000_claim_beer_gift_rpc.sql).
-  const { data, error } = await sb.rpc('claim_beer_gift', { p_id: id })
+  const { data, error } = await sb.rpc('claim_beer_gift', { p_id: id, p_claimed_by: claimer })
 
   if (error) {
+    const raw = (error.message ?? '').toLowerCase()
+    if (raw.includes('add your name')) {
+      throw new BeerGiftServiceError('VALIDATION', 'Add your name so the group knows who took the beer.')
+    }
     throw new BeerGiftServiceError('BACKEND', 'Could not claim that beer. Try again.')
   }
   if (data === null || data === undefined) {
@@ -261,8 +282,9 @@ async function claimSupabase(id: string): Promise<BeerGift> {
   return mapDbRow(row as BeerGiftDbRow)
 }
 
-async function claimLocal(id: string): Promise<BeerGift> {
+async function claimLocal(id: string, claimedBy: string): Promise<BeerGift> {
   await Promise.resolve()
+  const claimer = normalizeClaimedBy(claimedBy)
   const rows = loadAllLocal()
   const idx = rows.findIndex((r) => r.id === id)
   if (idx === -1) {
@@ -282,6 +304,7 @@ async function claimLocal(id: string): Promise<BeerGift> {
     ...current,
     claimed: true,
     claimedAt: new Date().toISOString(),
+    claimedBy: claimer,
   }
   rows[idx] = updated
   saveAllLocal(rows)
@@ -307,10 +330,10 @@ export const beerGiftService = {
     return addLocal(input)
   },
 
-  async claim(id: string): Promise<BeerGift> {
+  async claim(id: string, claimedBy: string): Promise<BeerGift> {
     if (isSupabaseConfigured()) {
-      return claimSupabase(id)
+      return claimSupabase(id, claimedBy)
     }
-    return claimLocal(id)
+    return claimLocal(id, claimedBy)
   },
 }

@@ -12,6 +12,8 @@ export type BeerGift = {
   note: string | null
   claimed: boolean
   claimedAt: string | null
+  /** Set when claimed; name entered by the person who took the beer. */
+  claimedBy: string | null
   createdAt: string
 }
 
