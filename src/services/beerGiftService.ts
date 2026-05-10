@@ -244,22 +244,21 @@ async function addLocal(input: NewBeerGiftInput): Promise<BeerGift> {
 
 async function claimSupabase(id: string): Promise<BeerGift> {
   const sb = getSupabase()
-  const claimedAt = new Date().toISOString()
-  const { data, error } = await sb
-    .from('beer_gifts')
-    .update({ claimed: true, claimed_at: claimedAt })
-    .eq('id', id)
-    .eq('claimed', false)
-    .select()
-    .maybeSingle()
+  // Use RPC so the claimed row can be returned; RLS blocks SELECT on claimed rows,
+  // so UPDATE ... select() fails in PostgREST (see supabase/migrations/20260110140000_claim_beer_gift_rpc.sql).
+  const { data, error } = await sb.rpc('claim_beer_gift', { p_id: id })
 
   if (error) {
     throw new BeerGiftServiceError('BACKEND', 'Could not claim that beer. Try again.')
   }
-  if (!data) {
+  if (data === null || data === undefined) {
     throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
   }
-  return mapDbRow(data as BeerGiftDbRow)
+  const row = Array.isArray(data) ? data[0] : data
+  if (!row || typeof row !== 'object') {
+    throw new BeerGiftServiceError('NOT_FOUND', 'That beer is no longer available.')
+  }
+  return mapDbRow(row as BeerGiftDbRow)
 }
 
 async function claimLocal(id: string): Promise<BeerGift> {
