@@ -7,8 +7,8 @@ import { BeerGiftServiceError, beerGiftService } from '../services/beerGiftServi
 import { formatExpiresAtForDisplay, hoursUntilExpiresAt } from '../utils/dates'
 import { copyToClipboard } from '../utils/copyToClipboard'
 
-/** Highlight when the code stops within this many hours. */
-const SOON_HOURS = 7 * 24
+/** Show "Expiring soon" only when the code stops within this many hours. */
+const SOON_HOURS = 24
 
 function ClaimModal({
   gift,
