@@ -105,6 +105,17 @@ See `dev-core/guides/testing-framework.md` in the parent workspace for the wider
 - `src/components/Layout.tsx` — shared shell, footer, responsible-use note.
 - `amplify.yml` — Amplify build for this folder.
 
+## Reset board data (Supabase)
+
+Use **SQL Editor** as an owner-capable session (dashboard runs with rights to truncate/delete).
+
+| Goal | Script |
+|------|--------|
+| Zero everything (available, all-time claimed, leaderboard, history) | **`supabase/scripts/reset_all_beer_board_data.sql`** |
+| Only clear gifts **listed this UTC month** (soft reset for monthly leaderboard; keeps older rows) | **`supabase/scripts/reset_beer_gifts_this_month_only_utc.sql`** |
+
+There is **no reset in the app UI**; counts and “top gifters” are always computed from **`beer_gifts`** (and claim velocity is a separate small table).
+
 ## Licence
 
 Private project for your tipping group; no licence granted for reuse unless you add one.
