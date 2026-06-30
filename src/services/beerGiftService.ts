@@ -13,7 +13,7 @@ const localClaimHits: number[] = []
 const LOCAL_CLAIM_WINDOW_MS = 60_000
 const LOCAL_CLAIM_MAX_PER_WINDOW = 40
 
-export type BoardStats = { available: number; claimed: number }
+export type BoardStats = { available: number; gifted: number }
 export type TopGifter = { giftedBy: string; giftCount: number }
 
 function recordLocalClaimVelocity(): void {
@@ -217,7 +217,7 @@ function parseBoardStatsJson(raw: unknown): BoardStats {
   const o = raw as Record<string, unknown>
   return {
     available: rpcCountToNumber(o.available),
-    claimed: rpcCountToNumber(o.claimed),
+    gifted: rpcCountToNumber(o.gifted),
   }
 }
 
@@ -233,12 +233,12 @@ async function boardStatsSupabase(): Promise<BoardStats> {
 async function boardStatsLocal(): Promise<BoardStats> {
   await Promise.resolve()
   let available = 0
-  let claimed = 0
+  let gifted = 0
   for (const r of loadAllLocal()) {
-    if (r.claimed) claimed += 1
-    else if (!expiresAtHasPassed(r.expiresAt)) available += 1
+    gifted += 1
+    if (!r.claimed && !expiresAtHasPassed(r.expiresAt)) available += 1
   }
-  return { available, claimed }
+  return { available, gifted }
 }
 
 type TopGifterRowDb = { gifted_by: string; gift_count: number }
@@ -441,10 +441,10 @@ export const beerGiftService = {
     return s.available
   },
 
-  /** All-time count of beers that were claimed (`claimed = true`). */
-  async countClaimed(): Promise<number> {
+  /** All-time count of beers submitted via Gift a Beer (every `beer_gifts` row). */
+  async countGifted(): Promise<number> {
     const s = await (isSupabaseConfigured() ? boardStatsSupabase() : boardStatsLocal())
-    return s.claimed
+    return s.gifted
   },
 
   /** Most active gifters this calendar month (local month in dev storage mode). */

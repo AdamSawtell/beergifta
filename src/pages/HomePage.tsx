@@ -53,7 +53,7 @@ export function HomePage() {
   }
 
   const availableCount = stats?.available
-  const claimedCount = stats?.claimed
+  const giftedCount = stats?.gifted
 
   return (
     <Layout>
@@ -76,7 +76,7 @@ export function HomePage() {
                 Try again
               </button>
             </div>
-          ) : availableCount === undefined || claimedCount === undefined ? (
+          ) : availableCount === undefined || giftedCount === undefined ? (
             <p className="home-stats-feedback home-stats-feedback--muted">
               <span className="home-stats-pulse" aria-hidden />
               Checking the board…
@@ -113,19 +113,19 @@ export function HomePage() {
                 </article>
                 <article
                   className="home-stat-card home-stat-card--total"
-                  aria-label={`${claimedCount} ${claimedCount === 1 ? 'beer' : 'beers'} claimed all time`}
+                  aria-label={`${giftedCount} ${giftedCount === 1 ? 'beer' : 'beers'} gifted all time`}
                 >
                   <div className="home-stat-card-inner">
                     <div className="home-stat-kpi">
                       <span className="home-stat-value" aria-hidden="true">
-                        {claimedCount}
+                        {giftedCount}
                       </span>
                     </div>
                     <div className="home-stat-body">
                       <span className="home-stat-eyebrow">All time</span>
-                      <p className="home-stat-caption">{claimedCount === 1 ? 'beer' : 'beers'} claimed</p>
+                      <p className="home-stat-caption">{giftedCount === 1 ? 'beer' : 'beers'} gifted</p>
                       <p className="home-stat-foot">
-                        Codes taken from this list—your group’s running tally.
+                        Every code submitted through Gift a Beer—your group’s running tally.
                       </p>
                     </div>
                   </div>
