@@ -16,6 +16,7 @@ For **one list every device can see**, the app uses **Supabase** (Postgres + Row
    - **`supabase/migrations/20260511100000_beer_gifts_claimed_count.sql`** (**`beer_gifts_claimed_count()`** — optional if you upgrade next; superseded by board stats RPC)
    - **`supabase/migrations/20260512120000_board_stats_velocity_leaderboard.sql`** (**`beer_gift_board_stats()`** one-call tallies for home page, **`beer_gift_top_gifters_month()`** leaderboard, claim **rate limiting** via **`beer_claim_velocity`**, patched **`claim_beer_gift`**)  
    - **`supabase/migrations/20260630120000_board_stats_gifted_count.sql`** (**`beer_gift_board_stats()`** returns **`gifted`** — all-time count of beers submitted via Gift a Beer, not claimed-only)  
+   - **`supabase/migrations/20260630150000_top_gifters_all_time.sql`** (**`beer_gift_top_gifters()`** — all-time top gifters leaderboard, not UTC month)  
    You should see table **`public.beer_gifts`** under **Table Editor**. If the RPC does not show in the API tab, use **Settings → API → Reload schema** (wording may vary).
 3. Open **Project Settings → API** and copy **Project URL** and the **`anon` `public`** key (never put the **service_role** key in the browser or in Amplify for this app).
 

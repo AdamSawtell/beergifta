@@ -30,10 +30,6 @@ function recordLocalClaimVelocity(): void {
   localClaimHits.push(now)
 }
 
-function startOfLocalMonthTs(d: Date): number {
-  return new Date(d.getFullYear(), d.getMonth(), 1).setHours(0, 0, 0, 0)
-}
-
 export type BeerGiftServiceErrorCode =
   | 'VALIDATION'
   | 'EXPIRED'
@@ -243,9 +239,9 @@ async function boardStatsLocal(): Promise<BoardStats> {
 
 type TopGifterRowDb = { gifted_by: string; gift_count: number }
 
-async function topGiftersThisMonthSupabase(limit: number): Promise<TopGifter[]> {
+async function topGiftersSupabase(limit: number): Promise<TopGifter[]> {
   const sb = getSupabase()
-  const { data, error } = await sb.rpc('beer_gift_top_gifters_month', { p_limit: limit })
+  const { data, error } = await sb.rpc('beer_gift_top_gifters', { p_limit: limit })
   if (error) {
     throw new BeerGiftServiceError('BACKEND', 'Could not load leaderboard. Try again.')
   }
@@ -256,12 +252,10 @@ async function topGiftersThisMonthSupabase(limit: number): Promise<TopGifter[]> 
   })
 }
 
-async function topGiftersThisMonthLocal(limit: number): Promise<TopGifter[]> {
+async function topGiftersLocal(limit: number): Promise<TopGifter[]> {
   await Promise.resolve()
-  const start = startOfLocalMonthTs(new Date())
   const counts = new Map<string, number>()
   for (const r of loadAllLocal()) {
-    if (new Date(r.createdAt).getTime() < start) continue
     const k = r.giftedBy.trim()
     if (!k) continue
     counts.set(k, (counts.get(k) ?? 0) + 1)
@@ -447,13 +441,13 @@ export const beerGiftService = {
     return s.gifted
   },
 
-  /** Most active gifters this calendar month (local month in dev storage mode). */
-  async topGiftersThisMonth(limit = 5): Promise<TopGifter[]> {
+  /** Most active gifters all time (by beers submitted via Gift a Beer). */
+  async topGifters(limit = 5): Promise<TopGifter[]> {
     const cap = Math.min(20, Math.max(1, Math.floor(limit)))
     if (isSupabaseConfigured()) {
-      return topGiftersThisMonthSupabase(cap)
+      return topGiftersSupabase(cap)
     }
-    return topGiftersThisMonthLocal(cap)
+    return topGiftersLocal(cap)
   },
 
   async add(input: NewBeerGiftInput): Promise<BeerGift> {

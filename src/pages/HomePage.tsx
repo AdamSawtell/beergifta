@@ -18,7 +18,7 @@ export function HomePage() {
       const s = await beerGiftService.boardStats()
       let leaders: TopGifter[] = []
       try {
-        leaders = await beerGiftService.topGiftersThisMonth(5)
+        leaders = await beerGiftService.topGifters(5)
       } catch {
         leaders = []
       }
@@ -134,7 +134,7 @@ export function HomePage() {
               {topGifters.length > 0 ? (
                 <div className="home-leaderboard" aria-labelledby="home-leaderboard-heading">
                   <p id="home-leaderboard-heading" className="home-leaderboard-title">
-                    Top gifters · this month
+                    Top gifters · all time
                   </p>
                   <ol className="home-leaderboard-list">
                     {topGifters.map((row, idx) => (
