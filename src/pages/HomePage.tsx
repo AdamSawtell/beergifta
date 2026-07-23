@@ -58,8 +58,20 @@ export function HomePage() {
   return (
     <Layout>
       <section className="hero-card">
-        <h1>Beer Gifta</h1>
-        <p className="hero-pies-line">Yeh - Pies did OK!</p>
+        <div className="hero-brand">
+          <img
+            className="pies-logo pies-logo--hero"
+            src="/images/pies-logo.png"
+            alt="Collingwood Magpies"
+            width={72}
+            height={72}
+            decoding="async"
+          />
+          <div>
+            <h1>Beer Gifta</h1>
+            <p className="hero-pies-line">Yeh - Pies did OK!</p>
+          </div>
+        </div>
         <p>
           Share spare Beer to Gift codes with the{' '}
           <span className="crew-highlight">Old Noarlunga footy tipping crew</span>.

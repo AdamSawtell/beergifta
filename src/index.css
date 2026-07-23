@@ -75,9 +75,23 @@ a {
 
 .brand-title-row {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.15rem;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.pies-logo {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  border: 1px solid #aa976755;
+}
+
+.brand-title-text {
   min-width: 0;
 }
 
@@ -684,15 +698,28 @@ a {
   border: 1px solid rgba(170, 151, 103, 0.45);
 }
 
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 0.65rem;
+}
+
+.pies-logo--hero {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 14px;
+}
+
 .hero-card h1 {
-  margin: 0 0 0.2rem;
+  margin: 0;
   font-size: 1.75rem;
   color: #ffffff;
 }
 
 .hero-pies-line {
-  margin: 0 0 0.75rem !important;
-  font-size: 0.9rem !important;
+  margin: 0.2rem 0 0 !important;
+  font-size: 0.85rem !important;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;

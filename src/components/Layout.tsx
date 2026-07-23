@@ -11,11 +11,21 @@ export function Layout({ showBack, children }: LayoutProps) {
       <header className="app-header">
         <Link to="/" className="brand-link">
           <div className="brand-title-row">
-            <div className="brand-title-line">
-              <h1 className="brand-title">Beer Gifta</h1>
-              <span className="pies-badge">Yeh - Pies did OK!</span>
+            <img
+              className="pies-logo"
+              src="/images/pies-logo.png"
+              alt=""
+              width={44}
+              height={44}
+              decoding="async"
+            />
+            <div className="brand-title-text">
+              <div className="brand-title-line">
+                <h1 className="brand-title">Beer Gifta</h1>
+                <span className="pies-badge">Yeh - Pies did OK!</span>
+              </div>
+              <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
             </div>
-            <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
           </div>
         </Link>
         {showBack ? (
