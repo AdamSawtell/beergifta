@@ -158,6 +158,78 @@ a {
   border: 1px solid #ffd20033;
 }
 
+.tex-milestone {
+  margin-top: 1.25rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid #ffd20044;
+  box-shadow: var(--shadow);
+  background: linear-gradient(165deg, #0b2240 0%, #002b5c 55%, #e2193722 100%);
+}
+
+.tex-milestone-media {
+  position: relative;
+  margin: 0;
+  line-height: 0;
+}
+
+.tex-milestone-media::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0;
+  height: 42%;
+  background: linear-gradient(180deg, transparent 0%, #0b2240 92%);
+  pointer-events: none;
+}
+
+.tex-milestone-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 22rem;
+  object-fit: cover;
+  object-position: center 18%;
+}
+
+.tex-milestone-copy {
+  position: relative;
+  padding: 0.35rem 1.25rem 1.35rem;
+  text-align: center;
+}
+
+.tex-milestone-eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffd200;
+}
+
+.tex-milestone-heading {
+  margin: 0 0 0.4rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.tex-milestone-shout {
+  margin: 0 0 0.55rem;
+  font-size: 1.45rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: #ffd200;
+  text-shadow: 0 2px 12px rgba(226, 25, 55, 0.45);
+}
+
+.tex-milestone-lead {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.88);
+}
+
 .share-qr-card {
   margin-top: 1.25rem;
   background: var(--color-bg-elevated);

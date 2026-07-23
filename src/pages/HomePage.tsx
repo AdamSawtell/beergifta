@@ -172,6 +172,29 @@ export function HomePage() {
         </p>
       </section>
 
+      <section className="tex-milestone" aria-labelledby="tex-milestone-heading">
+        <div className="tex-milestone-media">
+          <img
+            className="tex-milestone-img"
+            src="/images/tex-says-yes.png"
+            alt="Taylor Walker cupping his ear to the crowd"
+            width={640}
+            height={800}
+            decoding="async"
+          />
+        </div>
+        <div className="tex-milestone-copy">
+          <p className="tex-milestone-eyebrow">Milestone</p>
+          <h2 id="tex-milestone-heading" className="tex-milestone-heading">
+            100 beers through Beer Gifta
+          </h2>
+          <p className="tex-milestone-shout">Tex says yes!!!!!</p>
+          <p className="tex-milestone-lead">
+            One hundred codes gifted by the Old Noarlunga footy tipping crew. Keep the board moving.
+          </p>
+        </div>
+      </section>
+
       <section className="share-qr-card" aria-labelledby="share-qr-heading">
         <h2 id="share-qr-heading" className="share-qr-heading">
           Share the site with other legends
