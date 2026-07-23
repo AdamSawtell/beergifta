@@ -10,7 +10,10 @@ export function Layout({ showBack, children }: LayoutProps) {
     <div className="app-shell">
       <header className="app-header">
         <Link to="/" className="brand-link">
-          <h1 className="brand-title">Beer Gifta</h1>
+          <div className="brand-title-row">
+            <h1 className="brand-title">Beer Gifta</h1>
+            <span className="go-crows-badge">Go Crows</span>
+          </div>
           <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
         </Link>
         {showBack ? (

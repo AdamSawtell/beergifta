@@ -59,7 +59,10 @@ export function HomePage() {
     <Layout>
       <section className="hero-card">
         <h1>Beer Gifta</h1>
-        <p>Share spare Beer to Gift codes with the Old Noarlunga footy tipping crew.</p>
+        <p>
+          Share spare Beer to Gift codes with the{' '}
+          <span className="crew-highlight">Old Noarlunga footy tipping crew</span>.
+        </p>
         <div className="actions-stack">
           <Link className="btn btn-primary btn-block" to="/gift">
             Gift a Beer
