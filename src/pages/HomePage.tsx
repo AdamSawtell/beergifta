@@ -58,7 +58,20 @@ export function HomePage() {
   return (
     <Layout>
       <section className="hero-card">
-        <h1>Beer Gifta</h1>
+        <div className="hero-brand">
+          <img
+            className="crows-logo crows-logo--hero"
+            src="/images/crows-logo.png"
+            alt="Adelaide Crows"
+            width={72}
+            height={72}
+            decoding="async"
+          />
+          <div>
+            <h1>Beer Gifta</h1>
+            <p className="hero-go-crows">Go Crows</p>
+          </div>
+        </div>
         <p>
           Share spare Beer to Gift codes with the{' '}
           <span className="crew-highlight">Old Noarlunga footy tipping crew</span>.

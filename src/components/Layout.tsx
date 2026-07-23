@@ -11,10 +11,22 @@ export function Layout({ showBack, children }: LayoutProps) {
       <header className="app-header">
         <Link to="/" className="brand-link">
           <div className="brand-title-row">
-            <h1 className="brand-title">Beer Gifta</h1>
-            <span className="go-crows-badge">Go Crows</span>
+            <img
+              className="crows-logo"
+              src="/images/crows-logo.png"
+              alt=""
+              width={44}
+              height={44}
+              decoding="async"
+            />
+            <div className="brand-title-text">
+              <div className="brand-title-line">
+                <h1 className="brand-title">Beer Gifta</h1>
+                <span className="go-crows-badge">Go Crows</span>
+              </div>
+              <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
+            </div>
           </div>
-          <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
         </Link>
         {showBack ? (
           <Link to="/" className="nav-back">
