@@ -86,15 +86,16 @@ a {
   min-width: 0;
 }
 
-.pies-logo {
+.brand-logo {
   flex-shrink: 0;
   width: 2.75rem;
   height: 2.75rem;
   object-fit: cover;
+  object-position: center 35%;
   border-radius: 10px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 205, 0, 0.33);
+  background: #f4efe6;
+  box-shadow: 0 2px 8px rgba(1, 43, 30, 0.35);
+  border: 1px solid rgba(255, 205, 0, 0.45);
 }
 
 .brand-title-text {
@@ -115,7 +116,7 @@ a {
   color: var(--color-accent);
 }
 
-.pies-badge {
+.brand-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.2rem 0.55rem;
@@ -716,7 +717,7 @@ a {
   margin-bottom: 0.65rem;
 }
 
-.pies-logo--hero {
+.brand-logo--hero {
   width: 4.25rem;
   height: 4.25rem;
   border-radius: 14px;
@@ -728,7 +729,7 @@ a {
   color: #ffffff;
 }
 
-.hero-pies-line {
+.hero-brand-line {
   margin: 0.2rem 0 0 !important;
   font-size: 0.85rem !important;
   font-weight: 800;

@@ -60,16 +60,16 @@ export function HomePage() {
       <section className="hero-card">
         <div className="hero-brand">
           <img
-            className="pies-logo pies-logo--hero"
-            src="/images/pies-logo.png"
-            alt="Collingwood Magpies"
+            className="brand-logo brand-logo--hero"
+            src="/images/old-noarlunga-hotel.png"
+            alt="Old Noarlunga Hotel"
             width={72}
             height={72}
             decoding="async"
           />
           <div>
             <h1>Beer Gifta</h1>
-            <p className="hero-pies-line">Aussie green & gold</p>
+            <p className="hero-brand-line">Aussie green & gold</p>
           </div>
         </div>
         <p>

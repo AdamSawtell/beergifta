@@ -12,9 +12,9 @@ export function Layout({ showBack, children }: LayoutProps) {
         <Link to="/" className="brand-link">
           <div className="brand-title-row">
             <img
-              className="pies-logo"
-              src="/images/pies-logo.png"
-              alt=""
+              className="brand-logo"
+              src="/images/old-noarlunga-hotel.png"
+              alt="Old Noarlunga Hotel"
               width={44}
               height={44}
               decoding="async"
@@ -22,7 +22,7 @@ export function Layout({ showBack, children }: LayoutProps) {
             <div className="brand-title-text">
               <div className="brand-title-line">
                 <h1 className="brand-title">Beer Gifta</h1>
-                <span className="pies-badge">Green & Gold</span>
+                <span className="brand-badge">Green & Gold</span>
               </div>
               <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
             </div>
