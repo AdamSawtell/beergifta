@@ -69,7 +69,7 @@ export function HomePage() {
           />
           <div>
             <h1>Beer Gifta</h1>
-            <p className="hero-pies-line">Yeh - Pies did OK!</p>
+            <p className="hero-pies-line">Aussie green & gold</p>
           </div>
         </div>
         <p>
@@ -209,7 +209,7 @@ export function HomePage() {
               includeMargin
               title="Open Beer Gifta"
               bgColor="#ffffff"
-              fgColor="#000000"
+              fgColor="#012b1e"
             />
           </div>
           <a className="share-qr-link" href={siteUrl}>

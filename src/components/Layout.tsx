@@ -22,7 +22,7 @@ export function Layout({ showBack, children }: LayoutProps) {
             <div className="brand-title-text">
               <div className="brand-title-line">
                 <h1 className="brand-title">Beer Gifta</h1>
-                <span className="pies-badge">Yeh - Pies did OK!</span>
+                <span className="pies-badge">Green & Gold</span>
               </div>
               <p className="brand-sub">Old Noarlunga Hotel · AFL tipping</p>
             </div>
